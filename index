@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ใบเสนอราคา - งานหลังคาต่อเติม</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2B2D2E;
+    --paper:#FBF9F6;
+    --clay:#B5563C;
+    --clay-soft:#F1DCD4;
+    --line:#DDD7CC;
+    --muted:#7A7E84;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Sarabun', sans-serif;
+    background:var(--ink);
+    color:var(--ink);
+  }
+  .mono{font-family:'Sarabun', sans-serif; font-variant-numeric:tabular-nums;}
+
+  /* ---------- shell / toolbar ---------- */
+  .page-shell{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:18px;
+    padding:28px 14px 60px;
+  }
+  .toolbar{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+  }
+  .toolbar-hint{
+    color:rgba(255,255,255,.55);
+    font-size:12.5px;
+    letter-spacing:.2px;
+  }
+  .toolbar-btns{display:flex; gap:10px; flex-wrap:wrap; justify-content:center;}
+  .btn{
+    padding:10px 22px;
+    border-radius:8px;
+    border:none;
+    font-family:'Sarabun', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    transition:background .15s, border-color .15s;
+  }
+  .btn-primary{background:var(--clay); color:#fff;}
+  .btn-primary:hover{background:#974529;}
+  .btn-ghost{background:transparent; color:#fff; border:1.5px solid rgba(255,255,255,.32);}
+  .btn-ghost:hover{border-color:#fff;}
+
+  /* ---------- sheet (the "paper") ---------- */
+  .sheet{
+    width:210mm;
+    max-width:100%;
+    min-height:297mm;
+    background:var(--paper);
+    box-shadow:0 24px 70px rgba(0,0,0,.45);
+    padding:14mm 15mm;
+  }
+
+  /* ---------- header ---------- */
+  .doc-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:20px;
+    flex-wrap:wrap;
+  }
+  .brand{display:flex; gap:12px; align-items:flex-start;}
+  .logo-box{display:flex; flex-direction:column; align-items:center; gap:3px; flex-shrink:0;}
+  .logo-upload{
+    width:120px; height:120px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; border-radius:8px; border:1.5px dashed transparent;
+    transition:border-color .15s, background .15s;
+  }
+  .logo-upload:hover{border-color:var(--clay); background:rgba(181,86,60,.06);}
+  .brand-mark{width:120px; height:120px; object-fit:contain; display:block;}
+  .logo-remove-link{
+    background:none; border:none; color:var(--muted); font-size:9.5px; text-decoration:underline;
+    cursor:pointer; font-family:'Sarabun', sans-serif; padding:0;
+  }
+  .logo-remove-link:hover{color:#b3261e;}
+  .company-name{
+    font-size:19px; font-weight:700; color:var(--ink); line-height:1.6;
+    border:none; background:transparent; font-family:inherit;
+    width:300px; padding:6px 0; border-bottom:1px dashed transparent;
+  }
+  .company-sub{
+    display:block; font-size:12px; color:var(--muted); line-height:1.8;
+    border:none; background:transparent; font-family:inherit;
+    width:300px; padding:4px 0; margin-top:2px; border-bottom:1px dashed transparent;
+  }
+  .company-name:focus, .company-sub:focus{outline:none; border-bottom:1px dashed var(--clay);}
+
+  .doc-meta{text-align:right;}
+  .doc-title{font-size:25px; font-weight:800; color:var(--clay); margin:0; letter-spacing:.5px;}
+  .doc-title-sub{font-size:10.5px; letter-spacing:3px; color:var(--muted); text-transform:uppercase; margin-top:1px;}
+  .meta-row{display:flex; justify-content:flex-end; align-items:center; gap:6px; font-size:12.5px; margin-top:7px;}
+  .meta-row label{color:var(--muted);}
+  .meta-row input{
+    border:none; border-bottom:1px dashed var(--line); background:transparent;
+    text-align:right; font-family:'Sarabun'; font-size:12.5px; padding:2px 3px; width:128px; color:var(--ink);
+  }
+  .meta-row input:focus{outline:none; border-bottom-color:var(--clay);}
+
+  /* ---------- roof tile divider (signature element) ---------- */
+  .roof-divider{display:block; width:100%; height:14px; margin:14px 0;}
+  .roof-divider.small{height:9px; margin:30px 0 4px;}
+
+  /* ---------- info grid ---------- */
+  .info-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px; margin:14px 0 18px;}
+  .info-block h3{
+    font-size:11.5px; letter-spacing:1px; text-transform:uppercase; color:var(--clay);
+    margin:0 0 8px; padding-bottom:5px; border-bottom:2px solid var(--ink);
+  }
+  .info-line{display:flex; gap:8px; margin-bottom:6px; font-size:13.5px; align-items:center;}
+  .info-line label{color:var(--muted); width:88px; flex-shrink:0;}
+  .info-line input{
+    flex:1; min-width:0; border:none; border-bottom:1px dashed var(--line); background:transparent;
+    font-family:inherit; font-size:13.5px; padding:3px 2px; color:var(--ink);
+  }
+  .info-line input:focus{outline:none; border-bottom-color:var(--clay);}
+
+  /* ---------- table ---------- */
+  .table-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+  table{width:100%; border-collapse:collapse; table-layout:fixed; min-width:480px;}
+  thead th{
+    background:var(--ink); color:#fff; text-align:left; font-weight:600;
+    font-size:11.5px; padding:9px 5px; line-height:1.3;
+  }
+  thead th.r{text-align:right;}
+  tbody td{padding:5px 4px; border-bottom:1px solid var(--line); vertical-align:middle;}
+  .num-col{width:28px; text-align:center; color:var(--muted); font-size:13px;}
+  .cell-input{
+    width:100%; border:none; background:transparent; font-family:inherit; font-size:13.5px;
+    padding:5px 3px; color:var(--ink);
+  }
+  .cell-input:focus{outline:none; background:rgba(181,86,60,.05); border-radius:3px;}
+  .qty, .price{text-align:right; width:100%;}
+  .unit{width:100%;}
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none; margin:0;}
+  input[type=number]{-moz-appearance:textfield;}
+  .amount{text-align:right; font-weight:600; font-size:13.5px; white-space:nowrap;}
+  .del-col{width:30px; text-align:center;}
+  .del-btn{
+    background:none; border:none; color:#b3261e; font-size:17px; line-height:1;
+    cursor:pointer; padding:3px 7px; border-radius:5px;
+  }
+  .del-btn:hover{background:#fbe4e1;}
+
+  .add-row-btn{
+    margin-top:10px; background:transparent; border:1.5px dashed var(--clay); color:var(--clay);
+    padding:7px 16px; border-radius:6px; font-size:13px; cursor:pointer; font-family:inherit; font-weight:600;
+  }
+  .add-row-btn:hover{background:var(--clay-soft);}
+
+  /* ---------- totals ---------- */
+  .totals-wrap{display:flex; justify-content:flex-end; margin-top:16px;}
+  .totals-box{width:300px; max-width:100%;}
+  .totals-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:6px 0; font-size:13.5px; border-bottom:1px solid var(--line); gap:8px;
+  }
+  .totals-row label{color:var(--muted); display:flex; align-items:center; gap:6px;}
+  .totals-row .val{font-family:'Sarabun'; font-weight:600;}
+  .discount-input{
+    width:90px; border:none; border-bottom:1px dashed var(--line); background:transparent;
+    font-family:'Sarabun'; font-size:13px; text-align:right; padding:2px 2px; color:var(--ink);
+  }
+  .discount-input:focus{outline:none; border-bottom-color:var(--clay);}
+  .rate-input{
+    width:32px; border:none; border-bottom:1px dashed var(--line); background:transparent;
+    font-family:'Sarabun'; font-size:12px; text-align:center; color:var(--ink);
+  }
+  .rate-input:focus{outline:none; border-bottom-color:var(--clay);}
+  .totals-row.grand{
+    border-bottom:none; border-top:2px solid var(--ink); margin-top:5px; padding-top:9px;
+    font-size:16.5px; font-weight:700; color:var(--ink);
+  }
+  .baht-text{text-align:right; margin-top:6px; font-size:12px; font-style:italic; color:var(--muted);}
+
+  /* ---------- terms ---------- */
+  .terms{margin-top:26px;}
+  .terms h3{
+    font-size:11.5px; letter-spacing:1px; text-transform:uppercase; color:var(--clay);
+    margin:0 0 8px; padding-bottom:5px; border-bottom:2px solid var(--ink);
+  }
+  .terms-content{font-size:13px; line-height:1.85; color:#3a3c3d;}
+  .terms-content:focus{outline:none; background:rgba(181,86,60,.04); border-radius:4px;}
+  .terms-content ul{margin:0; padding-left:18px;}
+
+  /* ---------- signatures ---------- */
+  .signatures{display:flex; justify-content:space-between; gap:30px; margin-top:50px; flex-wrap:wrap;}
+  .sig-block{flex:1; min-width:180px; text-align:center; font-size:13px;}
+  .stamp-circle{
+    width:64px; height:64px; border:1.5px dashed var(--line); border-radius:50%;
+    margin:0 auto 10px; display:flex; align-items:center; justify-content:center;
+    font-size:9.5px; color:#b9b4a9; text-align:center; line-height:1.3;
+  }
+  .sig-line{border-bottom:1px dashed var(--ink); height:42px; margin-bottom:8px;}
+  .sig-role{font-weight:600;}
+  .sig-sub{font-size:11.5px; color:var(--muted); margin-top:22px;}
+
+  /* ---------- signature image attach ---------- */
+  .sig-attach-box{
+    position:relative; height:42px; margin-bottom:8px; border-bottom:1px dashed var(--ink);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .sig-attach-dropzone{
+    width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; border-radius:4px; transition:background .15s; gap:4px;
+  }
+  .sig-attach-dropzone:hover{background:rgba(181,86,60,.06);}
+  .sig-attach-dropzone span{font-size:10px; color:var(--muted);}
+  .sig-attach-preview{width:100%; height:100%; display:none; align-items:center; justify-content:center; position:relative;}
+  .sig-attach-preview img{max-width:100%; max-height:100%; object-fit:contain;}
+  .sig-attach-remove{
+    position:absolute; top:-8px; right:-8px; width:18px; height:18px; border-radius:50%;
+    border:none; background:rgba(43,45,46,.7); color:#fff; font-size:11px; line-height:1; cursor:pointer;
+  }
+  .sig-attach-remove:hover{background:#b3261e;}
+
+  .footer-note{margin-top:26px; font-size:11px; color:var(--muted); text-align:center;}
+
+  /* ---------- attached photo / report pages (3 per A4 page) ---------- */
+  .attach-controls{
+    width:210mm; max-width:100%; display:flex; align-items:center; justify-content:center;
+    gap:14px; flex-wrap:wrap; padding:4px 10px;
+  }
+  .attach-controls-label{font-size:12.5px; color:rgba(255,255,255,.62); text-align:center;}
+  .attach-sheet{
+    width:210mm; max-width:100%; min-height:297mm;
+    background:var(--paper); box-shadow:0 24px 70px rgba(0,0,0,.45);
+    padding:14mm 15mm; display:flex; flex-direction:column; margin-top:18px;
+  }
+  .attach-sheet-title{
+    font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--clay);
+    text-align:center; margin:0 0 8mm; font-weight:700;
+  }
+  .attach-slot{
+    flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:6px; min-height:0;
+  }
+  .attach-slot + .attach-slot{margin-top:6mm;}
+  .attach-photo-box{
+    width:100%; max-width:160mm; height:74mm; display:flex; align-items:center; justify-content:center;
+    border:1px solid var(--line); border-radius:4px; overflow:hidden; background:#fff; position:relative;
+  }
+  .attach-photo-box img{max-width:100%; max-height:100%; object-fit:contain; display:block;}
+  .attach-photo-remove{
+    position:absolute; top:6px; right:6px; width:24px; height:24px; border-radius:50%;
+    border:none; background:rgba(43,45,46,.65); color:#fff; font-size:14px; line-height:1; cursor:pointer;
+  }
+  .attach-photo-remove:hover{background:#b3261e;}
+  .attach-caption{
+    width:100%; max-width:160mm; text-align:center; border:none; border-bottom:1px dashed var(--line);
+    background:transparent; font-family:inherit; font-size:12px; padding:3px 2px; color:var(--ink);
+  }
+  .attach-caption:focus{outline:none; border-bottom-color:var(--clay);}
+  .attach-caption::placeholder{color:var(--muted);}
+
+  /* ---------- saved quotes modal ---------- */
+  .saved-overlay{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.55);
+    align-items:center; justify-content:center; z-index:50; padding:20px;
+  }
+  .saved-overlay.open{display:flex;}
+  .saved-panel{
+    background:var(--paper); width:420px; max-width:100%; max-height:80vh;
+    border-radius:12px; overflow:hidden; display:flex; flex-direction:column;
+    box-shadow:0 20px 60px rgba(0,0,0,.4);
+  }
+  .saved-panel-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 16px; background:var(--ink); color:#fff; flex-shrink:0;
+  }
+  .saved-panel-head h3{margin:0; font-size:15px; font-weight:700;}
+  .saved-close{background:none; border:none; color:#fff; font-size:20px; cursor:pointer; line-height:1; padding:2px 6px;}
+  .saved-list{padding:8px 10px; overflow-y:auto;}
+  .saved-empty{padding:28px 10px; text-align:center; color:var(--muted); font-size:13px;}
+  .saved-item{
+    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    padding:10px 6px; border-bottom:1px solid var(--line);
+  }
+  .saved-item:last-child{border-bottom:none;}
+  .saved-name{font-weight:600; font-size:13.5px; color:var(--ink);}
+  .saved-meta{font-size:11.5px; color:var(--muted); margin-top:2px;}
+  .saved-actions{display:flex; gap:6px; flex-shrink:0;}
+  .btn-small{
+    border:none; border-radius:6px; padding:6px 12px; font-size:12px; font-weight:600;
+    cursor:pointer; font-family:'Sarabun', sans-serif; white-space:nowrap;
+  }
+  .btn-load{background:var(--clay); color:#fff;}
+  .btn-load:hover{background:#974529;}
+  .btn-del{background:transparent; color:#b3261e; border:1.5px solid #e8b6b1;}
+  .btn-del:hover{background:#fbe4e1;}
+
+  /* ---------- print ---------- */
+  .no-print{}
+  @media print{
+    body{background:#fff;}
+    .page-shell{padding:0; background:#fff;}
+    .toolbar{display:none;}
+    .sheet{box-shadow:none; width:auto; min-height:auto; padding:0;}
+    .no-print{display:none !important;}
+    .cell-input, .info-line input, .meta-row input, .company-name, .company-sub{border-bottom-color:transparent !important;}
+
+    .roof-divider{margin:8px 0;}
+    .roof-divider.small{margin:14px 0 4px;}
+    .info-grid{margin:10px 0 12px;}
+    thead th{padding:6px 5px;}
+    tbody td{padding:3px 4px;}
+    .totals-wrap{margin-top:10px;}
+    .totals-row{padding:4px 0;}
+    .totals-row.grand{padding-top:7px;}
+    .terms{margin-top:14px;}
+    .terms-content{line-height:1.55;}
+    .signatures{margin-top:26px;}
+    .stamp-circle{width:50px; height:50px;}
+    .sig-line{height:30px; margin-bottom:6px;}
+    .sig-attach-box{height:30px; margin-bottom:6px;}
+    .footer-note{margin-top:12px;}
+
+    .attach-controls{display:none !important;}
+    .attach-sheet{page-break-before:always; box-shadow:none; width:auto; min-height:auto; padding:0; margin-top:0;}
+    .attach-slot{page-break-inside:avoid; break-inside:avoid;}
+    .attach-sheet-title{page-break-after:avoid;}
+    .attach-caption{border-bottom-color:transparent !important;}
+
+    @page{size:A4; margin:10mm 12mm;}
+  }
+</style>
+</head>
+<body>
+
+<div class="page-shell">
+
+  <div class="toolbar no-print">
+    <div class="toolbar-hint">"เซฟ" เก็บไว้ในเบราว์เซอร์ (ใช้สะดวกระหว่างวัน) — "ดาวน์โหลดไฟล์" เก็บถาวรไว้ในเครื่อง ไม่หายแม้เคลียร์เบราว์เซอร์</div>
+    <div class="toolbar-btns">
+      <button class="btn btn-primary" onclick="printDoc()">🖨️ พิมพ์ / บันทึกเป็น PDF</button>
+      <button class="btn btn-ghost" onclick="saveQuote()">💾 เซฟ</button>
+      <button class="btn btn-ghost" onclick="openSavedPanel()">📂 รายการที่บันทึก</button>
+      <button class="btn btn-ghost" onclick="downloadQuoteFile()">⬇️ ดาวน์โหลดไฟล์</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('importFileInput').click()">📁 เปิดไฟล์</button>
+      <button class="btn btn-ghost" onclick="clearData()">🗑️ ล้างข้อมูล</button>
+    </div>
+    <input type="file" id="importFileInput" accept=".json,application/json" style="display:none;">
+  </div>
+
+  <div class="saved-overlay no-print" id="savedOverlay" onclick="if(event.target===this) closeSavedPanel()">
+    <div class="saved-panel">
+      <div class="saved-panel-head">
+        <h3>ใบเสนอราคาที่บันทึกไว้</h3>
+        <button class="saved-close" onclick="closeSavedPanel()">×</button>
+      </div>
+      <div id="savedList" class="saved-list"></div>
+    </div>
+  </div>
+
+  <div class="sheet">
+
+    <!-- header -->
+    <div class="doc-header">
+      <div class="brand">
+        <div class="logo-box">
+          <div class="logo-upload" id="logoUpload" onclick="document.getElementById('logoFileInput').click()" title="คลิกเพื่อใส่โลโก้ของคุณ">
+            <svg id="defaultLogoIcon" class="brand-mark" width="46" height="46" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 24L23 9L41 24" stroke="#B5563C" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M11 21V38H35V21" stroke="#2B2D2E" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M19 38V28H27V38" stroke="#2B2D2E" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <img id="logoImg" class="brand-mark" style="display:none;" alt="โลโก้">
+          </div>
+          <button type="button" class="logo-remove-link no-print" id="logoRemoveBtn" onclick="removeLogo(event)" style="display:none;">ลบโลโก้</button>
+        </div>
+        <input type="file" id="logoFileInput" accept="image/*" class="no-print" style="display:none;" onchange="handleLogoUpload(event)">
+        <div>
+          <input class="company-name" id="companyName" type="text" value="ชื่อร้าน / บริษัทของคุณ" placeholder="ชื่อร้าน / บริษัท">
+          <input class="company-sub" id="companyType" type="text" value="งานหลังคา ต่อเติม กระเบื้องหลังคาทุกชนิด" placeholder="ประเภทงาน">
+          <input class="company-sub" id="companyAddr" type="text" value="ที่อยู่ร้าน / เลขผู้เสียภาษี" placeholder="ที่อยู่ / เลขผู้เสียภาษี">
+          <input class="company-sub" id="companyPhone" type="text" value="โทร. 08X-XXX-XXXX" placeholder="เบอร์โทร">
+        </div>
+      </div>
+      <div class="doc-meta">
+        <div class="doc-title">ใบเสนอราคา</div>
+        <div class="doc-title-sub">QUOTATION</div>
+        <div class="meta-row"><label>เลขที่</label><input type="text" id="docNo"></div>
+        <div class="meta-row"><label>วันที่</label><input type="date" id="docDate"></div>
+        <div class="meta-row"><label>ยืนราคาถึง</label><input type="date" id="docDue"></div>
+      </div>
+    </div>
+
+    <svg class="roof-divider" viewBox="0 0 600 14" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="tilePattern" width="22" height="14" patternUnits="userSpaceOnUse">
+          <path d="M0,14 Q11,-1 22,14 Z" fill="#B5563C"/>
+        </pattern>
+      </defs>
+      <rect width="600" height="14" fill="url(#tilePattern)"/>
+    </svg>
+
+    <!-- customer / project info -->
+    <div class="info-grid">
+      <div class="info-block">
+        <h3>เสนอราคาให้แก่</h3>
+        <div class="info-line"><label>ชื่อลูกค้า</label><input type="text" id="customerName" placeholder="ชื่อ-นามสกุล / บริษัท"></div>
+        <div class="info-line"><label>ที่อยู่</label><input type="text" id="customerAddress" placeholder="ที่อยู่สำหรับติดต่อ"></div>
+        <div class="info-line"><label>เบอร์โทร</label><input type="text" id="customerPhone" placeholder="08X-XXX-XXXX"></div>
+      </div>
+      <div class="info-block">
+        <h3>รายละเอียดงาน</h3>
+        <div class="info-line"><label>สถานที่หน้างาน</label><input type="text" id="siteAddress" placeholder="ที่อยู่หน้างาน"></div>
+        <div class="info-line"><label>ลักษณะงาน</label><input type="text" id="workType" value="ต่อเติมหลังคา"></div>
+        <div class="info-line"><label>พื้นที่โดยประมาณ</label><input type="text" id="areaApprox" placeholder="เช่น 45 ตร.ม."></div>
+      </div>
+    </div>
+
+    <!-- line items -->
+    <div class="table-wrap">
+      <table>
+        <colgroup>
+          <col style="width:22px;">
+          <col>
+          <col style="width:60px;">
+          <col style="width:50px;">
+          <col style="width:76px;">
+          <col style="width:94px;">
+          <col style="width:26px;">
+        </colgroup>
+        <thead>
+          <tr>
+            <th style="width:28px;">#</th>
+            <th>รายการ</th>
+            <th class="r">จำนวน</th>
+            <th>หน่วย</th>
+            <th class="r">ราคา/หน่วย</th>
+            <th class="r">จำนวนเงิน</th>
+            <th class="no-print"></th>
+          </tr>
+        </thead>
+        <tbody id="itemsBody"></tbody>
+      </table>
+    </div>
+    <button type="button" class="add-row-btn no-print" onclick="addRow()">+ เพิ่มรายการ</button>
+
+    <!-- totals -->
+    <div class="totals-wrap">
+      <div class="totals-box">
+        <div class="totals-row">
+          <label>รวมเป็นเงิน</label>
+          <span class="val mono" id="subtotalDisplay">0.00</span>
+        </div>
+        <div class="totals-row">
+          <label>หักส่วนลด</label>
+          <input type="number" class="discount-input" id="discountInput" value="0" min="0" step="0.01">
+        </div>
+        <div class="totals-row" id="vatRow" style="display:flex;">
+          <label>
+            <input type="checkbox" id="vatCheck" checked>
+            ภาษีมูลค่าเพิ่ม
+            <input type="number" class="rate-input" id="vatRate" value="7" min="0" step="0.1">%
+          </label>
+          <span class="val mono" id="vatAmountDisplay">0.00</span>
+        </div>
+        <div class="totals-row" id="whtRow" style="display:none;">
+          <label>
+            <input type="checkbox" id="whtCheck">
+            หัก ณ ที่จ่าย
+            <input type="number" class="rate-input" id="whtRate" value="3" min="0" step="0.1">%
+          </label>
+          <span class="val mono" id="whtAmountDisplay">0.00</span>
+        </div>
+        <div class="totals-row grand">
+          <label style="color:var(--ink);">รวมทั้งสิ้น</label>
+          <span class="val mono" id="grandTotalDisplay">0.00</span>
+        </div>
+        <div class="baht-text" id="bahtTextDisplay"></div>
+      </div>
+    </div>
+
+    <!-- terms -->
+    <div class="terms">
+      <h3>เงื่อนไขและหมายเหตุ</h3>
+      <div class="terms-content" id="termsContent" contenteditable="true">
+        <ul>
+          <li>ใบเสนอราคานี้มีอายุ 30 วันนับจากวันที่ออกเอกสาร</li>
+          <li>เงื่อนไขการชำระเงิน: มัดจำ 50% ก่อนเริ่มงาน ส่วนที่เหลือชำระเมื่องานแล้วเสร็จ</li>
+          <li>รับประกันงานติดตั้งหลังคา 1 ปี (ไม่รวมภัยธรรมชาติ)</li>
+          <li>ราคานี้ยังไม่รวมค่าใช้จ่ายอื่นที่ไม่ได้ระบุไว้ในรายการ</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- signatures -->
+    <div class="signatures">
+      <div class="sig-block">
+        <div class="stamp-circle">ประทับตรา<br>(ถ้ามี)</div>
+        <div class="sig-attach-box">
+          <div class="sig-attach-dropzone no-print" id="issuerSigDropzone" onclick="document.getElementById('issuerSigInput').click()" title="คลิกเพื่อแนบรูปลายเซ็น">
+            <span>+ แนบลายเซ็น PNG</span>
+          </div>
+          <div class="sig-attach-preview" id="issuerSigPreview">
+            <button type="button" class="sig-attach-remove no-print" onclick="removeIssuerSig(event)" title="ลบลายเซ็นนี้">×</button>
+            <img id="issuerSigImg" alt="ลายเซ็นผู้เสนอราคา">
+          </div>
+          <input type="file" id="issuerSigInput" accept="image/*" class="no-print" style="display:none;" onchange="handleIssuerSigUpload(event)">
+        </div>
+        <div class="sig-role">ผู้เสนอราคา</div>
+        <div class="sig-sub">วันที่ ............................</div>
+      </div>
+      <div class="sig-block">
+        <div class="stamp-circle">&nbsp;</div>
+        <div class="sig-line"></div>
+        <div class="sig-role">ผู้อนุมัติ / ลูกค้า</div>
+        <div class="sig-sub">วันที่ ............................</div>
+      </div>
+    </div>
+
+    <svg class="roof-divider small" viewBox="0 0 600 9" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="600" height="9" fill="url(#tilePattern)"/>
+    </svg>
+    <div class="footer-note"></div>
+
+  </div>
+
+  <div class="attach-controls no-print">
+    <div class="attach-controls-label">แนบรูปภาพ/รายงานเพิ่มเติม — แสดงในหน้าถัดไป หน้าละ 3 รูป พร้อมคำอธิบายใต้ภาพ</div>
+    <button type="button" class="btn btn-ghost" onclick="document.getElementById('attachPhotoInput').click()">+ เพิ่มรูปภาพ</button>
+    <input type="file" id="attachPhotoInput" accept="image/*" multiple style="display:none;">
+  </div>
+  <div id="attachPagesContainer"></div>
+
+</div>
+
+<script>
+let rowCount = 0;
+
+function createRow(name, qty, unit, price){
+  rowCount++;
+  const tr = document.createElement('tr');
+  tr.innerHTML =
+    '<td class="num-col">' + rowCount + '</td>' +
+    '<td><input type="text" class="cell-input item-name" value="' + (name||'') + '" placeholder="ระบุรายการ..."></td>' +
+    '<td><input type="number" class="cell-input qty mono" value="' + (qty!==undefined?qty:1) + '" min="0" step="0.01"></td>' +
+    '<td><input type="text" class="cell-input unit" value="' + (unit||'งาน') + '" placeholder="หน่วย"></td>' +
+    '<td><input type="number" class="cell-input price mono" value="' + (price!==undefined?price:0) + '" min="0" step="0.01"></td>' +
+    '<td class="amount mono">0.00</td>' +
+    '<td class="no-print del-col"><button type="button" class="del-btn" onclick="removeRow(this)">×</button></td>';
+  document.getElementById('itemsBody').appendChild(tr);
+  updateRowAmount(tr);
+}
+
+function updateRowAmount(tr){
+  const qty = parseFloat(tr.querySelector('.qty').value) || 0;
+  const price = parseFloat(tr.querySelector('.price').value) || 0;
+  const amount = qty * price;
+  tr.querySelector('.amount').textContent = fmt(amount);
+  tr.dataset.amount = amount;
+  recalcTotals();
+}
+
+function removeRow(btn){
+  btn.closest('tr').remove();
+  renumber();
+  recalcTotals();
+}
+
+function renumber(){
+  document.querySelectorAll('#itemsBody tr').forEach((tr, i) => {
+    tr.querySelector('.num-col').textContent = i + 1;
+  });
+}
+
+function addRow(){
+  createRow('', 1, 'งาน', 0);
+  renumber();
+}
+
+function fmt(n){
+  return n.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function recalcTotals(){
+  let subtotal = 0;
+  document.querySelectorAll('#itemsBody tr').forEach(tr => {
+    subtotal += parseFloat(tr.dataset.amount) || 0;
+  });
+
+  const discount = parseFloat(document.getElementById('discountInput').value) || 0;
+  const afterDiscount = Math.max(subtotal - discount, 0);
+
+  const vatChecked = document.getElementById('vatCheck').checked;
+  const vatRate = parseFloat(document.getElementById('vatRate').value) || 0;
+  const vatAmount = vatChecked ? afterDiscount * vatRate / 100 : 0;
+
+  const whtChecked = document.getElementById('whtCheck').checked;
+  const whtRate = parseFloat(document.getElementById('whtRate').value) || 0;
+  const whtAmount = whtChecked ? afterDiscount * whtRate / 100 : 0;
+
+  const grandTotal = afterDiscount + vatAmount - whtAmount;
+
+  document.getElementById('subtotalDisplay').textContent = fmt(subtotal);
+  document.getElementById('vatAmountDisplay').textContent = fmt(vatAmount);
+  document.getElementById('whtAmountDisplay').textContent = fmt(whtAmount);
+  document.getElementById('grandTotalDisplay').textContent = fmt(grandTotal);
+  document.getElementById('bahtTextDisplay').textContent = '(' + thaiBahtText(grandTotal) + ')';
+}
+
+function thaiBahtText(amount){
+  const numTH = ['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
+  const placeTH = ['','สิบ','ร้อย','พัน','หมื่น','แสน'];
+
+  function readChunk(str){
+    let out = '';
+    const n = str.length;
+    for(let i = 0; i < n; i++){
+      const d = +str[i];
+      const place = n - i - 1;
+      if(d === 0) continue;
+      if(place === 0){
+        out += (d === 1 && n > 1) ? 'เอ็ด' : numTH[d];
+      } else if(place === 1){
+        out += (d === 1) ? placeTH[1] : (d === 2 ? 'ยี่' + placeTH[1] : numTH[d] + placeTH[1]);
+      } else {
+        out += numTH[d] + placeTH[place];
+      }
+    }
+    return out;
+  }
+
+  function readInt(str){
+    str = str.replace(/^0+/, '') || '0';
+    if(str === '0') return 'ศูนย์';
+    const groups = [];
+    let s = str;
+    while(s.length > 6){ groups.unshift(s.slice(-6)); s = s.slice(0, -6); }
+    groups.unshift(s);
+    return groups.map(readChunk).join('ล้าน');
+  }
+
+  amount = Math.round(Math.abs(amount) * 100) / 100;
+  const parts = amount.toFixed(2).split('.');
+  let text = readInt(parts[0]) + 'บาท';
+  const satang = parseInt(parts[1], 10);
+  text += satang > 0 ? (readChunk(satang.toString()) + 'สตางค์') : 'ถ้วน';
+  return text;
+}
+
+function printDoc(){ window.print(); }
+
+/* ---------- collect / apply form data ---------- */
+function collectFormData(){
+  const items = [];
+  document.querySelectorAll('#itemsBody tr').forEach(tr => {
+    items.push({
+      name: tr.querySelector('.item-name').value,
+      qty: tr.querySelector('.qty').value,
+      unit: tr.querySelector('.unit').value,
+      price: tr.querySelector('.price').value
+    });
+  });
+  return {
+    companyName: document.getElementById('companyName').value,
+    companyType: document.getElementById('companyType').value,
+    companyAddr: document.getElementById('companyAddr').value,
+    companyPhone: document.getElementById('companyPhone').value,
+    docNo: document.getElementById('docNo').value,
+    docDate: document.getElementById('docDate').value,
+    docDue: document.getElementById('docDue').value,
+    customerName: document.getElementById('customerName').value,
+    customerAddress: document.getElementById('customerAddress').value,
+    customerPhone: document.getElementById('customerPhone').value,
+    siteAddress: document.getElementById('siteAddress').value,
+    workType: document.getElementById('workType').value,
+    areaApprox: document.getElementById('areaApprox').value,
+    items: items,
+    discount: document.getElementById('discountInput').value,
+    vatChecked: document.getElementById('vatCheck').checked,
+    vatRate: document.getElementById('vatRate').value,
+    whtChecked: document.getElementById('whtCheck').checked,
+    whtRate: document.getElementById('whtRate').value,
+    termsHtml: document.getElementById('termsContent').innerHTML,
+    issuerSignature: (document.getElementById('issuerSigPreview').style.display !== 'none' ? document.getElementById('issuerSigImg').src : ''),
+    attachPhotos: attachPhotos.map(p => ({ caption: p.caption, dataUrl: p.dataUrl })),
+    grandTotal: parseFloat(document.getElementById('grandTotalDisplay').textContent.replace(/,/g, '')) || 0
+  };
+}
+
+function applyFormData(data){
+  document.getElementById('companyName').value = data.companyName || '';
+  document.getElementById('companyType').value = data.companyType || '';
+  document.getElementById('companyAddr').value = data.companyAddr || '';
+  document.getElementById('companyPhone').value = data.companyPhone || '';
+  document.getElementById('docNo').value = data.docNo || '';
+  document.getElementById('docDate').value = data.docDate || '';
+  document.getElementById('docDue').value = data.docDue || '';
+  document.getElementById('customerName').value = data.customerName || '';
+  document.getElementById('customerAddress').value = data.customerAddress || '';
+  document.getElementById('customerPhone').value = data.customerPhone || '';
+  document.getElementById('siteAddress').value = data.siteAddress || '';
+  document.getElementById('workType').value = data.workType || '';
+  document.getElementById('areaApprox').value = data.areaApprox || '';
+  document.getElementById('discountInput').value = data.discount || 0;
+  document.getElementById('vatCheck').checked = !!data.vatChecked;
+  document.getElementById('vatRate').value = data.vatRate || 7;
+  document.getElementById('whtCheck').checked = !!data.whtChecked;
+  document.getElementById('whtRate').value = data.whtRate || 3;
+  document.getElementById('termsContent').innerHTML = data.termsHtml || '';
+
+  if (data.issuerSignature) setIssuerSig(data.issuerSignature); else removeIssuerSig();
+
+  attachPhotos = (data.attachPhotos || []).map(p => {
+    attachPhotoSeq++;
+    return { id: 'ap' + attachPhotoSeq, dataUrl: p.dataUrl, caption: p.caption || '' };
+  });
+  renderAttachPages();
+
+  document.getElementById('itemsBody').innerHTML = '';
+  rowCount = 0;
+  (data.items || []).forEach(it => createRow(it.name, it.qty, it.unit, it.price));
+  renumber();
+  recalcTotals();
+}
+
+function escapeHtml(str){
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+/* ---------- save / load / delete via the browser's localStorage ---------- */
+const STORAGE_PREFIX = 'quote';
+const INDEX_KEY = 'quote-index';
+
+function storageAvailable(){
+  try{
+    const testKey = '__storage_test__';
+    localStorage.setItem(testKey, '1');
+    localStorage.removeItem(testKey);
+    return true;
+  } catch(e){
+    return false;
+  }
+}
+
+function getIndex(){
+  try{
+    const raw = localStorage.getItem(INDEX_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch(e){ return []; }
+}
+
+function setIndex(list){
+  try{ localStorage.setItem(INDEX_KEY, JSON.stringify(list)); } catch(e){}
+}
+
+function saveQuote(){
+  if(!storageAvailable()){
+    alert('เบราว์เซอร์นี้บันทึกข้อมูลไม่ได้ครับ (ฟีเจอร์นี้ต้องเปิดไฟล์ผ่าน Chrome โดยตรง ไม่ใช่หน้าต่างพรีวิวของ Claude.ai)');
+    return;
+  }
+  const data = collectFormData();
+  const id = 'q' + Date.now();
+  try{
+    localStorage.setItem(STORAGE_PREFIX + ':' + id, JSON.stringify(data));
+    const idx = getIndex();
+    idx.unshift({
+      id: id,
+      label: data.customerName || 'ไม่ระบุชื่อลูกค้า',
+      docNo: data.docNo,
+      date: data.docDate,
+      grandTotal: data.grandTotal,
+      savedAt: new Date().toISOString()
+    });
+    setIndex(idx);
+    alert('บันทึกใบเสนอราคาไว้ในเบราว์เซอร์เรียบร้อยแล้ว');
+  } catch(e){
+    alert('บันทึกไม่สำเร็จ พื้นที่จัดเก็บของเบราว์เซอร์อาจเต็ม ลองลบรายการเก่าบางส่วนก่อนครับ');
+  }
+}
+
+/* ---------- Download / open as a real file on the PC ---------- */
+function downloadQuoteFile(){
+  const data = collectFormData();
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const today = (data.docDate || new Date().toISOString().split('T')[0]);
+  const labelRaw = (data.customerName || 'ใบเสนอราคา').trim() || 'ใบเสนอราคา';
+  const label = labelRaw.replace(/[\\/:*?"<>|]+/g, '_').slice(0, 40);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `quotation_${label}_${today}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('importFileInput').addEventListener('change', e => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try{
+      const data = JSON.parse(evt.target.result);
+      applyFormData(data);
+      alert('โหลดข้อมูลจากไฟล์เรียบร้อยแล้ว');
+    } catch(err){
+      alert('ไฟล์นี้เปิดไม่ได้ — อาจไม่ใช่ไฟล์ที่ดาวน์โหลดจากใบเสนอราคานี้ หรือไฟล์เสียหาย');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+function openSavedPanel(){
+  if(!storageAvailable()){
+    alert('เบราว์เซอร์นี้ใช้งานฟีเจอร์นี้ไม่ได้ครับ (ต้องเปิดไฟล์ผ่าน Chrome โดยตรง ไม่ใช่หน้าต่างพรีวิวของ Claude.ai)');
+    return;
+  }
+  renderSavedList();
+  document.getElementById('savedOverlay').classList.add('open');
+}
+
+function closeSavedPanel(){
+  document.getElementById('savedOverlay').classList.remove('open');
+}
+
+function renderSavedList(){
+  const idx = getIndex();
+  const container = document.getElementById('savedList');
+  if(idx.length === 0){
+    container.innerHTML = '<div class="saved-empty">ยังไม่มีใบเสนอราคาที่บันทึกไว้</div>';
+    return;
+  }
+  container.innerHTML = idx.map(item => {
+    const totalText = (item.grandTotal || 0).toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
+    const dateText = item.date || '-';
+    return '<div class="saved-item">' +
+      '<div>' +
+        '<div class="saved-name">' + escapeHtml(item.label) + '</div>' +
+        '<div class="saved-meta">' + escapeHtml(item.docNo || '') + ' • ' + dateText + ' • ฿' + totalText + '</div>' +
+      '</div>' +
+      '<div class="saved-actions">' +
+        '<button class="btn-small btn-load" onclick="loadQuote(\'' + item.id + '\')">เปิด</button>' +
+        '<button class="btn-small btn-del" onclick="deleteQuote(\'' + item.id + '\')">ลบ</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function loadQuote(id){
+  try{
+    const raw = localStorage.getItem(STORAGE_PREFIX + ':' + id);
+    if(!raw){ alert('ไม่พบข้อมูลที่บันทึกไว้'); return; }
+    const data = JSON.parse(raw);
+    applyFormData(data);
+    closeSavedPanel();
+  } catch(e){
+    alert('โหลดข้อมูลไม่สำเร็จ');
+  }
+}
+
+function deleteQuote(id){
+  if(!confirm('ลบใบเสนอราคานี้ออกจากรายการที่บันทึกไว้?')) return;
+  try{
+    localStorage.removeItem(STORAGE_PREFIX + ':' + id);
+    let idx = getIndex();
+    idx = idx.filter(item => item.id !== id);
+    setIndex(idx);
+    renderSavedList();
+  } catch(e){
+    alert('ลบไม่สำเร็จ ลองอีกครั้งครับ');
+  }
+}
+
+/* ---------- clear current form ---------- */
+function clearData(){
+  if(!confirm('ล้างข้อมูลในแบบฟอร์มปัจจุบันทั้งหมด (ใบที่เคยกดเซฟไว้จะไม่หาย) ดำเนินการต่อหรือไม่?')) return;
+
+  document.getElementById('customerName').value = '';
+  document.getElementById('customerAddress').value = '';
+  document.getElementById('customerPhone').value = '';
+  document.getElementById('siteAddress').value = '';
+  document.getElementById('workType').value = 'ต่อเติมหลังคา';
+  document.getElementById('areaApprox').value = '';
+  document.getElementById('discountInput').value = 0;
+  document.getElementById('vatCheck').checked = true;
+  document.getElementById('vatRate').value = 7;
+  document.getElementById('whtCheck').checked = false;
+  document.getElementById('whtRate').value = 3;
+  document.getElementById('termsContent').innerHTML =
+    '<ul>' +
+      '<li>ใบเสนอราคานี้มีอายุ 30 วันนับจากวันที่ออกเอกสาร</li>' +
+      '<li>เงื่อนไขการชำระเงิน: มัดจำ 50% ก่อนเริ่มงาน ส่วนที่เหลือชำระเมื่องานแล้วเสร็จ</li>' +
+      '<li>รับประกันงานติดตั้งหลังคา 1 ปี (ไม่รวมภัยธรรมชาติ)</li>' +
+      '<li>ราคานี้ยังไม่รวมค่าใช้จ่ายอื่นที่ไม่ได้ระบุไว้ในรายการ</li>' +
+    '</ul>';
+
+  document.getElementById('itemsBody').innerHTML = '';
+  rowCount = 0;
+  addRow();
+
+  attachPhotos = [];
+  renderAttachPages();
+
+  const today = new Date();
+  const due = new Date(); due.setDate(today.getDate() + 30);
+  const iso = (d) => d.toISOString().split('T')[0];
+  document.getElementById('docDate').value = iso(today);
+  document.getElementById('docDue').value = iso(due);
+  document.getElementById('docNo').value = 'QT-' + iso(today).replace(/-/g, '') + '-01';
+
+  recalcTotals();
+}
+
+document.getElementById('itemsBody').addEventListener('input', (e) => {
+  if(e.target.classList.contains('qty') || e.target.classList.contains('price')){
+    updateRowAmount(e.target.closest('tr'));
+  }
+});
+
+['discountInput','vatRate','whtRate'].forEach(id => {
+  document.getElementById(id).addEventListener('input', recalcTotals);
+});
+['vatCheck','whtCheck'].forEach(id => {
+  document.getElementById(id).addEventListener('change', recalcTotals);
+});
+
+/* ---------- logo upload ---------- */
+function handleLogoUpload(evt){
+  const file = evt.target.files && evt.target.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){
+    alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+    evt.target.value = '';
+    return;
+  }
+  if(file.size > 1024 * 1024){
+    alert('ไฟล์รูปใหญ่เกินไป กรุณาเลือกไฟล์ไม่เกิน 1MB');
+    evt.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => setLogo(e.target.result);
+  reader.readAsDataURL(file);
+  evt.target.value = '';
+}
+
+function setLogo(dataUrl){
+  document.getElementById('defaultLogoIcon').style.display = 'none';
+  const img = document.getElementById('logoImg');
+  img.src = dataUrl;
+  img.style.display = 'block';
+  document.getElementById('logoRemoveBtn').style.display = 'inline';
+  try{ localStorage.setItem('companyLogo', dataUrl); }
+  catch(e){ alert('บันทึกโลโก้ไว้ถาวรไม่ได้ (พื้นที่จัดเก็บอาจเต็ม) แต่ยังแสดงผลในหน้านี้ได้ปกติ'); }
+}
+
+function removeLogo(evt){
+  if(evt) evt.stopPropagation();
+  const img = document.getElementById('logoImg');
+  img.style.display = 'none';
+  img.src = '';
+  document.getElementById('defaultLogoIcon').style.display = 'block';
+  document.getElementById('logoRemoveBtn').style.display = 'none';
+  try{ localStorage.removeItem('companyLogo'); } catch(e){}
+}
+
+function restoreLogo(){
+  try{
+    const saved = localStorage.getItem('companyLogo');
+    if(saved) setLogo(saved);
+  } catch(e){}
+}
+
+/* ---------- issuer signature (PNG attach) ---------- */
+function handleIssuerSigUpload(evt){
+  const file = evt.target.files && evt.target.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){
+    alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น (แนะนำ PNG พื้นโปร่งใส)');
+    evt.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => setIssuerSig(e.target.result);
+  reader.readAsDataURL(file);
+  evt.target.value = '';
+}
+
+function setIssuerSig(dataUrl){
+  document.getElementById('issuerSigDropzone').style.display = 'none';
+  const img = document.getElementById('issuerSigImg');
+  img.src = dataUrl;
+  document.getElementById('issuerSigPreview').style.display = 'flex';
+  try{ localStorage.setItem('issuerSignature', dataUrl); } catch(e){}
+}
+
+function removeIssuerSig(evt){
+  if(evt) evt.stopPropagation();
+  document.getElementById('issuerSigPreview').style.display = 'none';
+  document.getElementById('issuerSigImg').src = '';
+  document.getElementById('issuerSigDropzone').style.display = 'flex';
+  try{ localStorage.removeItem('issuerSignature'); } catch(e){}
+}
+
+function restoreIssuerSig(){
+  try{
+    const saved = localStorage.getItem('issuerSignature');
+    if(saved) setIssuerSig(saved);
+  } catch(e){}
+}
+
+/* ---------- attached photo / report pages (3 per A4 page) ---------- */
+let attachPhotos = [];
+let attachPhotoSeq = 0;
+
+function resizeImageForAttach(file, maxDim, quality, callback){
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      let w = img.width, h = img.height;
+      if (w > maxDim || h > maxDim){
+        if (w > h){ h = Math.round(h * maxDim / w); w = maxDim; }
+        else { w = Math.round(w * maxDim / h); h = maxDim; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleAttachPhotoFiles(files){
+  [...files].forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    resizeImageForAttach(file, 1400, 0.78, dataUrl => {
+      attachPhotoSeq++;
+      attachPhotos.push({ id: 'ap' + attachPhotoSeq, dataUrl: dataUrl, caption: '' });
+      renderAttachPages();
+    });
+  });
+}
+
+document.getElementById('attachPhotoInput').addEventListener('change', e => {
+  handleAttachPhotoFiles(e.target.files);
+  e.target.value = '';
+});
+
+function removeAttachPhoto(id){
+  attachPhotos = attachPhotos.filter(p => p.id !== id);
+  renderAttachPages();
+}
+
+function updateAttachCaption(id, value){
+  const p = attachPhotos.find(p => p.id === id);
+  if (p) p.caption = value;
+}
+
+function renderAttachPages(){
+  const container = document.getElementById('attachPagesContainer');
+  const activeId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.photoId : null;
+  container.innerHTML = '';
+  for (let i = 0; i < attachPhotos.length; i += 3){
+    const group = attachPhotos.slice(i, i + 3);
+    const pageNum = Math.floor(i / 3) + 1;
+    const pageDiv = document.createElement('div');
+    pageDiv.className = 'attach-sheet';
+    let html = `<div class="attach-sheet-title">ภาพประกอบ / รายงานหน้างาน — หน้า ${pageNum}</div>`;
+    group.forEach(p => {
+      html += `
+        <div class="attach-slot">
+          <div class="attach-photo-box">
+            <button type="button" class="attach-photo-remove no-print" onclick="removeAttachPhoto('${p.id}')" title="ลบรูปนี้">×</button>
+            <img src="${p.dataUrl}" alt="ภาพประกอบ">
+          </div>
+          <input type="text" class="attach-caption" data-photo-id="${p.id}" placeholder="พิมพ์คำอธิบายภาพ..." value="${escapeHtml(p.caption)}" oninput="updateAttachCaption('${p.id}', this.value)">
+        </div>
+      `;
+    });
+    pageDiv.innerHTML = html;
+    container.appendChild(pageDiv);
+  }
+  if (activeId){
+    const toFocus = container.querySelector(`[data-photo-id="${activeId}"]`);
+    if (toFocus) toFocus.focus();
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  createRow('รื้อถอนหลังคาเดิม และขนทิ้งนอกสถานที่', 1, 'งาน', 8000);
+  createRow('โครงหลังคาเหล็กกล่อง ชุบกันสนิม', 45, 'ตร.ม.', 450);
+  createRow('มุงกระเบื้องหลังคาคอนกรีต พร้อมอุปกรณ์ยึด', 45, 'ตร.ม.', 380);
+  createRow('แผ่นสะท้อนความร้อนใต้หลังคา (กันร้อน)', 45, 'ตร.ม.', 120);
+  createRow('ค่าแรงติดตั้ง + ขนส่งวัสดุ', 1, 'งาน', 15000);
+  renumber();
+  restoreLogo();
+  restoreIssuerSig();
+  renderAttachPages();
+
+  const today = new Date();
+  const due = new Date(); due.setDate(today.getDate() + 30);
+  const iso = (d) => d.toISOString().split('T')[0];
+  document.getElementById('docDate').value = iso(today);
+  document.getElementById('docDue').value = iso(due);
+  document.getElementById('docNo').value = 'QT-' + iso(today).replace(/-/g,'') + '-01';
+
+  recalcTotals();
+});
+</script>
+
+</body>
+</html>
