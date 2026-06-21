@@ -554,6 +554,47 @@
   .btn-confirm:hover{background:#974529;}
   .btn-confirm:active{transform:scale(.96);}
 
+  /* ---------- selling-price calculator modal ---------- */
+  .calc-overlay{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.55);
+    align-items:center; justify-content:center; z-index:125; padding:20px;
+  }
+  .calc-overlay.open{display:flex;}
+  .calc-panel{
+    background:var(--paper); width:380px; max-width:100%; border-radius:14px; overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,.4); animation:confirmIn .22s var(--ease);
+  }
+  .calc-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:14px 18px; background:var(--ink); color:#fff;
+  }
+  .calc-head h3{margin:0; font-size:15px; font-weight:700;}
+  .calc-close{background:none; border:none; color:#fff; font-size:20px; cursor:pointer; line-height:1; padding:2px 6px;}
+  .calc-body{padding:18px 18px 20px;}
+  .calc-field{margin-bottom:12px;}
+  .calc-field label{display:block; font-size:12.5px; color:var(--muted); margin-bottom:4px;}
+  .calc-field-hint{font-size:10.5px; color:var(--muted); font-weight:400;}
+  .calc-field input{
+    width:100%; border:1.5px solid var(--line); border-radius:8px; background:#fff;
+    font-family:'Sarabun'; font-size:14px; padding:8px 10px; color:var(--ink); text-align:right;
+    transition:border-color .15s;
+  }
+  .calc-field input:focus{outline:none; border-color:var(--clay);}
+  .calc-breakdown{margin-top:14px; padding:12px 14px; background:var(--clay-soft); border-radius:10px;}
+  .calc-line{display:flex; justify-content:space-between; gap:10px; font-size:12.5px; color:#6b4a3e; padding:3px 0;}
+  .calc-line-grand{
+    margin-top:6px; padding-top:8px; border-top:1.5px solid rgba(181,86,60,.3);
+    font-size:15.5px; font-weight:700; color:var(--clay);
+  }
+  .calc-apply-btn{
+    width:100%; margin-top:14px; background:var(--clay); color:#fff; border:none;
+    padding:11px; border-radius:8px; font-family:inherit; font-weight:700; font-size:14px; cursor:pointer;
+    transition:background .15s, transform .12s var(--ease);
+  }
+  .calc-apply-btn:hover{background:#974529; transform:translateY(-1px);}
+  .calc-apply-btn:active{transform:translateY(0) scale(.97);}
+  .calc-target-hint{margin-top:9px; font-size:11px; color:var(--muted); text-align:center; line-height:1.6;}
+
   /* ---------- saved quotes modal ---------- */
   .saved-overlay{
     display:none; position:fixed; inset:0; background:rgba(0,0,0,.55);
@@ -574,7 +615,7 @@
   .saved-list{padding:8px 10px; overflow-y:auto;}
   .saved-empty{padding:28px 10px; text-align:center; color:var(--muted); font-size:13px;}
   .saved-item{
-    display:flex; justify-content:space-between; align-items:center; gap:10px;
+    display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px 10px;
     padding:10px 6px; border-bottom:1px solid var(--line);
   }
   .saved-item:last-child{border-bottom:none;}
@@ -582,7 +623,7 @@
   .saved-meta{font-size:11.5px; color:var(--muted); margin-top:2px;}
   .saved-actions{display:flex; gap:6px; flex-shrink:0;}
   .btn-small{
-    border:none; border-radius:6px; padding:6px 12px; font-size:12px; font-weight:600;
+    border:none; border-radius:6px; padding:6px 10px; font-size:11.5px; font-weight:600;
     cursor:pointer; font-family:'Sarabun', sans-serif; white-space:nowrap;
     transition:background .15s, transform .12s var(--ease);
   }
@@ -590,6 +631,8 @@
   .btn-small:active{transform:translateY(0) scale(.96);}
   .btn-load{background:var(--clay); color:#fff;}
   .btn-load:hover{background:#974529;}
+  .btn-duplicate{background:transparent; color:var(--ink); border:1.5px solid var(--line);}
+  .btn-duplicate:hover{background:var(--clay-soft); border-color:var(--clay);}
   .btn-del{background:transparent; color:#b3261e; border:1.5px solid #e8b6b1;}
   .btn-del:hover{background:#fbe4e1;}
 
@@ -666,6 +709,40 @@
     </div>
   </div>
 
+  <div class="calc-overlay no-print" id="calcOverlay" onclick="if(event.target===this) closeCalcModal()">
+    <div class="calc-panel">
+      <div class="calc-head">
+        <h3>🧮 คำนวณราคาขาย</h3>
+        <button type="button" class="calc-close" onclick="closeCalcModal()">×</button>
+      </div>
+      <div class="calc-body">
+        <div class="calc-field">
+          <label>ต้นทุน (วัสดุ + ค่าแรง)</label>
+          <input type="number" id="calcCost" min="0" step="0.01" value="0" oninput="updateCalc()">
+        </div>
+        <div class="calc-field">
+          <label>กำไรที่ต้องการ (%)</label>
+          <input type="number" id="calcMargin" min="0" step="0.1" value="20" oninput="updateCalc()">
+        </div>
+        <div class="calc-field">
+          <label>ค่านายหน้า (%) <span class="calc-field-hint">— ถ้ามี</span></label>
+          <input type="number" id="calcCommission" min="0" max="90" step="0.1" value="0" oninput="updateCalc()">
+        </div>
+
+        <div class="calc-breakdown">
+          <div class="calc-line"><span>ต้นทุน</span><span id="calcOutCost" class="mono">0.00</span></div>
+          <div class="calc-line"><span>+ กำไร</span><span id="calcOutMargin" class="mono">0.00</span></div>
+          <div class="calc-line"><span>= ราคาก่อนหักค่านายหน้า</span><span id="calcOutPreCommission" class="mono">0.00</span></div>
+          <div class="calc-line" id="calcCommissionLine"><span>+ ค่านายหน้า (ดันราคาขึ้นชดเชย)</span><span id="calcOutCommission" class="mono">0.00</span></div>
+          <div class="calc-line calc-line-grand"><span>ราคาขายแนะนำ / หน่วย</span><span id="calcOutPrice" class="mono">0.00</span></div>
+        </div>
+
+        <button type="button" class="calc-apply-btn" onclick="applyCalcPrice()">✓ ใช้ราคานี้</button>
+        <div class="calc-target-hint" id="calcTargetHint"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="workspace">
 
     <aside class="catalog-panel no-print" id="catalogPanel">
@@ -694,6 +771,7 @@
     <div class="toolbar-hint">"เซฟ" เก็บไว้ในเบราว์เซอร์ (ใช้สะดวกระหว่างวัน) — "ดาวน์โหลดไฟล์" เก็บถาวรไว้ในเครื่อง ไม่หายแม้เคลียร์เบราว์เซอร์</div>
     <div class="toolbar-btns">
       <button class="btn btn-primary" onclick="printDoc()">🖨️ พิมพ์ / บันทึกเป็น PDF</button>
+      <button class="btn btn-ghost" onclick="openCalcModal()">🧮 คำนวณราคา</button>
       <button class="btn btn-ghost" onclick="saveQuote()">💾 เซฟ</button>
       <button class="btn btn-ghost" onclick="openSavedPanel()">📂 รายการที่บันทึก</button>
       <button class="btn btn-ghost" onclick="downloadQuoteFile()">⬇️ ดาวน์โหลดไฟล์</button>
@@ -916,7 +994,7 @@ function createRow(name, qty, unit, price){
     '<td><input type="text" class="cell-input item-name" value="' + (name||'') + '" placeholder="ระบุรายการ..."></td>' +
     '<td><input type="number" class="cell-input qty mono" value="' + (qty!==undefined?qty:1) + '" min="0" step="0.01"></td>' +
     '<td><input type="text" class="cell-input unit" value="' + (unit||'งาน') + '" placeholder="หน่วย"></td>' +
-    '<td><input type="number" class="cell-input price mono" value="' + (price!==undefined?price:0) + '" min="0" step="0.01"></td>' +
+    '<td><input type="number" class="cell-input price mono" value="' + (price!==undefined?price:0) + '" min="0" step="0.01" onfocus="trackPriceFocus(this)"></td>' +
     '<td class="amount mono">0.00</td>' +
     '<td class="no-print del-col"><button type="button" class="del-btn" onclick="removeRow(this)" title="ลบรายการนี้">×</button></td>';
   document.getElementById('itemsBody').appendChild(tr);
@@ -1263,7 +1341,7 @@ function renderCatalog(){
       </div>
       <div class="catalog-row-controls">
         <input type="text" class="catalog-row-unit" value="${escapeHtml(item.unit)}" placeholder="หน่วย" oninput="updateCatalogItem('${item.id}','unit',this.value)">
-        <input type="number" class="catalog-row-price mono"${priceStyle} value="${item.price || 0}" min="0" step="0.01" oninput="updateCatalogItem('${item.id}','price',this.value)">
+        <input type="number" class="catalog-row-price mono"${priceStyle} value="${item.price || 0}" min="0" step="0.01" onfocus="trackPriceFocus(this)" oninput="updateCatalogItem('${item.id}','price',this.value)">
         <button type="button" class="catalog-row-add" onclick="addToQuoteFromCatalog('${item.id}')" title="เพิ่มเข้าใบเสนอราคา">+</button>
         <button type="button" class="catalog-row-del" onclick="removeCatalogItem('${item.id}')" title="ลบออกจากคลัง">×</button>
       </div>
@@ -1388,6 +1466,73 @@ function setupCatalogResize(){
     try{ localStorage.setItem('catalogPanelWidth', DEFAULT_W); } catch(e){}
     showToast('รีเซ็ตความกว้างคลังรายการแล้ว', 'info', 1800);
   });
+}
+
+/* ---------- selling-price calculator ---------- */
+let lastFocusedPriceInput = null;
+
+function trackPriceFocus(el){
+  lastFocusedPriceInput = el;
+}
+
+function openCalcModal(){
+  document.getElementById('calcOverlay').classList.add('open');
+  updateCalc();
+  updateCalcTargetHint();
+}
+
+function closeCalcModal(){
+  document.getElementById('calcOverlay').classList.remove('open');
+}
+
+function updateCalcTargetHint(){
+  const hint = document.getElementById('calcTargetHint');
+  if(lastFocusedPriceInput && document.body.contains(lastFocusedPriceInput)){
+    hint.textContent = 'กด "ใช้ราคานี้" เพื่อเติมราคาลงในช่องที่เลือกไว้';
+  } else {
+    hint.textContent = 'เคล็ดลับ: คลิกที่ช่องราคาที่ต้องการก่อนเปิดเครื่องคิดเลข แล้วกด "ใช้ราคานี้" เพื่อเติมให้อัตโนมัติ';
+  }
+}
+
+function updateCalc(){
+  const cost = parseFloat(document.getElementById('calcCost').value) || 0;
+  const marginPct = parseFloat(document.getElementById('calcMargin').value) || 0;
+  let commissionPct = parseFloat(document.getElementById('calcCommission').value) || 0;
+  commissionPct = Math.min(Math.max(commissionPct, 0), 95);
+
+  const margin = cost * marginPct / 100;
+  const preCommission = cost + margin;
+  const sellPrice = commissionPct > 0 ? preCommission / (1 - commissionPct / 100) : preCommission;
+  const commissionAmount = sellPrice - preCommission;
+
+  document.getElementById('calcOutCost').textContent = fmt(cost);
+  document.getElementById('calcOutMargin').textContent = fmt(margin);
+  document.getElementById('calcOutPreCommission').textContent = fmt(preCommission);
+  document.getElementById('calcOutCommission').textContent = fmt(commissionAmount);
+  document.getElementById('calcOutPrice').textContent = fmt(sellPrice);
+  document.getElementById('calcCommissionLine').style.display = commissionPct > 0 ? 'flex' : 'none';
+}
+
+function applyCalcPrice(){
+  if(!lastFocusedPriceInput || !document.body.contains(lastFocusedPriceInput)){
+    showToast('กรุณาคลิกที่ช่องราคาที่ต้องการกรอกก่อน แล้วลองอีกครั้ง', 'error', 4000);
+    return;
+  }
+  const price = parseFloat(document.getElementById('calcOutPrice').textContent.replace(/,/g, '')) || 0;
+  const el = lastFocusedPriceInput;
+  el.value = price;
+
+  if(el.classList.contains('price')){
+    const tr = el.closest('tr');
+    if(tr) updateRowAmount(tr);
+  } else if(el.classList.contains('catalog-row-price')){
+    const row = el.closest('.catalog-row');
+    const id = row && row.dataset.id;
+    if(id) updateCatalogItem(id, 'price', String(price));
+  }
+
+  showToast('เติมราคา ' + fmt(price) + ' บาทแล้ว', 'success', 2200);
+  closeCalcModal();
 }
 
 function printDoc(){ window.print(); }
@@ -1652,6 +1797,7 @@ function renderSavedList(){
       '</div>' +
       '<div class="saved-actions">' +
         '<button class="btn-small btn-load" onclick="loadQuote(\'' + item.id + '\')">เปิด</button>' +
+        '<button class="btn-small btn-duplicate" onclick="duplicateQuote(\'' + item.id + '\')" title="คัดลอกเป็นใบใหม่">คัดลอก</button>' +
         '<button class="btn-small btn-del" onclick="deleteQuote(\'' + item.id + '\')">ลบ</button>' +
       '</div>' +
     '</div>';
@@ -1668,6 +1814,27 @@ function loadQuote(id){
     showToast('โหลดใบเสนอราคาเรียบร้อยแล้ว', 'success');
   } catch(e){
     showToast('โหลดข้อมูลไม่สำเร็จ', 'error');
+  }
+}
+
+function duplicateQuote(id){
+  try{
+    const raw = localStorage.getItem(STORAGE_PREFIX + ':' + id);
+    if(!raw){ showToast('ไม่พบข้อมูลที่บันทึกไว้', 'error'); return; }
+    const data = JSON.parse(raw);
+
+    const today = new Date();
+    const due = new Date(); due.setDate(today.getDate() + 30);
+    const iso = (d) => d.toISOString().split('T')[0];
+    data.docDate = iso(today);
+    data.docDue = iso(due);
+    data.docNo = 'QT-' + iso(today).replace(/-/g, '') + '-' + String(Date.now()).slice(-4);
+
+    applyFormData(data);
+    closeSavedPanel();
+    showToast('คัดลอกใบเสนอราคาแล้ว — แก้ไขแล้วกด "เซฟ" เพื่อบันทึกเป็นใบใหม่', 'success', 4000);
+  } catch(e){
+    showToast('คัดลอกไม่สำเร็จ', 'error');
   }
 }
 
