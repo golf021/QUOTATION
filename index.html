@@ -14,15 +14,41 @@
     --clay-soft:#F1DCD4;
     --line:#DDD7CC;
     --muted:#7A7E84;
+    --good:#6E8F5C;
+    --bad:#B3261E;
+    --ease:cubic-bezier(.2,.8,.2,1);
   }
   *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
   body{
     margin:0;
     font-family:'Sarabun', sans-serif;
-    background:var(--ink);
     color:var(--ink);
+    background:
+      radial-gradient(ellipse 1100px 520px at 18% -8%, rgba(181,86,60,.22), transparent 60%),
+      radial-gradient(ellipse 900px 500px at 100% 0%, rgba(181,86,60,.10), transparent 55%),
+      var(--ink);
+    background-attachment:fixed;
   }
   .mono{font-family:'Sarabun', sans-serif; font-variant-numeric:tabular-nums;}
+
+  /* ---------- subtle roof-tile watermark on the dark shell ---------- */
+  .page-shell{position:relative;}
+  .page-shell::before{
+    content:"";
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='28' viewBox='0 0 44 28'%3E%3Cpath d='M0,28 Q11,2 22,28 Q33,2 44,28 Z' fill='%23ffffff' fill-opacity='0.028'/%3E%3C/svg%3E");
+    background-size:44px 28px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration:.001ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:.001ms !important;
+      scroll-behavior:auto !important;
+    }
+  }
 
   /* ---------- shell / toolbar ---------- */
   .page-shell{
@@ -33,11 +59,173 @@
     gap:18px;
     padding:28px 14px 60px;
   }
+
+  /* ---------- workspace split layout (catalog + document) ---------- */
+  .workspace{
+    width:100%;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    gap:22px;
+    position:relative;
+    z-index:1;
+  }
+  .doc-column{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:18px;
+    flex:1;
+    min-width:0;
+  }
+  @media print{
+    .workspace{display:block;}
+  }
+
+  /* ---------- item catalog panel ---------- */
+  .catalog-panel{
+    width:380px; flex-shrink:0;
+    position:sticky; top:12px;
+    max-height:calc(100vh - 24px);
+    display:flex; flex-direction:column;
+    background:rgba(43,45,46,.7);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:16px;
+    color:#fff;
+    overflow:hidden;
+  }
+  .catalog-resize-handle{
+    position:absolute; top:0; right:0; width:10px; height:100%;
+    cursor:col-resize; z-index:5;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .catalog-resize-handle::after{
+    content:""; width:3px; height:42px; border-radius:3px;
+    background:rgba(255,255,255,.18); transition:background .15s, height .15s;
+  }
+  .catalog-resize-handle:hover::after, .catalog-resize-handle.resizing::after{
+    background:var(--clay); height:64px;
+  }
+  .catalog-panel.collapsed .catalog-resize-handle{display:none;}
+  body.catalog-resizing{cursor:col-resize !important; user-select:none;}
+  body.catalog-resizing .sheet{pointer-events:none;}
+  .catalog-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 16px; flex-shrink:0; cursor:pointer;
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .catalog-title{display:flex; align-items:center; gap:8px; font-weight:700; font-size:14px;}
+  .catalog-title-icon{font-size:15px;}
+  .catalog-toggle{
+    background:none; border:none; color:rgba(255,255,255,.6); font-size:13px; cursor:pointer;
+    padding:5px 7px; border-radius:6px; transition:transform .25s var(--ease), color .15s, background .15s;
+  }
+  .catalog-toggle:hover{color:#fff; background:rgba(255,255,255,.08);}
+  .catalog-panel.collapsed .catalog-body{display:none;}
+  .catalog-panel.collapsed{max-height:none;}
+  .catalog-panel.collapsed .catalog-toggle{transform:rotate(-90deg);}
+  .catalog-body{
+    padding:12px 14px 14px; flex:1; min-height:0; overflow-y:auto;
+    display:flex; flex-direction:column;
+  }
+  .catalog-hint{font-size:11px; color:rgba(255,255,255,.5); line-height:1.65; margin-bottom:10px;}
+  .catalog-search{
+    width:100%; border:none; background:rgba(255,255,255,.08); border-radius:8px;
+    color:#fff; font-family:inherit; font-size:12.5px; padding:8px 10px; margin-bottom:10px;
+    transition:background .15s;
+  }
+  .catalog-search::placeholder{color:rgba(255,255,255,.4);}
+  .catalog-search:focus{outline:none; background:rgba(255,255,255,.14);}
+  .catalog-list{display:flex; flex-direction:column;}
+  .catalog-empty{padding:22px 6px; text-align:center; color:rgba(255,255,255,.4); font-size:12.5px; line-height:1.7;}
+  .catalog-row{
+    background:rgba(255,255,255,.04);
+    border:1px solid rgba(255,255,255,.08);
+    border-left:3px solid transparent;
+    border-radius:10px;
+    padding:8px 9px 9px;
+    margin-bottom:7px;
+    animation:rowIn .25s var(--ease);
+    transition:border-color .15s, background .15s;
+  }
+  .catalog-row:nth-child(even){background:rgba(255,255,255,.075);}
+  .catalog-row:hover{border-color:rgba(181,86,60,.55); background:rgba(255,255,255,.1);}
+  .catalog-row-top{display:flex; align-items:center; gap:8px; margin-bottom:7px;}
+  .catalog-color-dot{
+    width:13px; height:13px; border-radius:50%; flex-shrink:0; padding:0; cursor:pointer;
+    border:1.5px solid rgba(255,255,255,.35); background:transparent;
+    transition:transform .12s var(--ease), border-color .15s;
+  }
+  .catalog-color-dot:hover{transform:scale(1.3); border-color:#fff;}
+  .catalog-row-name{
+    flex:1; min-width:0; border:none; background:transparent; color:#fff;
+    font-family:inherit; font-size:13.5px; font-weight:600; padding:2px 2px 6px;
+    border-bottom:1px dashed rgba(255,255,255,.16);
+  }
+  .catalog-row-name:focus{outline:none; border-bottom-color:var(--clay);}
+  .catalog-row-name::placeholder{color:rgba(255,255,255,.35); font-weight:400;}
+  .catalog-row-controls{display:flex; align-items:center; gap:6px;}
+  .catalog-row-unit{
+    width:42px; flex-shrink:0; border:none; background:rgba(255,255,255,.07); border-radius:6px; color:rgba(255,255,255,.7);
+    font-family:inherit; font-size:11px; padding:6px 4px; text-align:center; transition:background .15s;
+  }
+  .catalog-row-price{
+    flex:1; min-width:0; border:none; background:rgba(255,255,255,.07); border-radius:6px; color:#e3a190;
+    font-family:inherit; font-size:13.5px; font-weight:700; padding:6px 7px; text-align:right; transition:background .15s;
+  }
+  .catalog-row-unit:focus, .catalog-row-price:focus{outline:none; background:rgba(181,86,60,.22);}
+  .catalog-row-unit::placeholder, .catalog-row-price::placeholder{color:rgba(255,255,255,.35);}
+  .catalog-row-add{
+    flex-shrink:0; width:30px; height:30px; border-radius:8px; border:none;
+    background:var(--clay); color:#fff; font-size:18px; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .15s, transform .12s var(--ease), box-shadow .15s;
+    box-shadow:0 3px 10px rgba(181,86,60,.35);
+  }
+  .catalog-row-add:hover{background:#974529; transform:translateY(-1px) scale(1.05); box-shadow:0 5px 14px rgba(181,86,60,.5);}
+  .catalog-row-add:active{transform:translateY(0) scale(.92);}
+  .catalog-row-del{
+    flex-shrink:0; width:22px; height:22px; border-radius:50%; border:none;
+    background:transparent; color:rgba(255,255,255,.38); font-size:14px; line-height:1; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; transition:color .15s, background .15s;
+  }
+  .catalog-row-del:hover{color:#fff; background:rgba(179,38,30,.65);}
+  .catalog-add-new{
+    margin-top:4px; background:transparent; border:1.5px dashed rgba(181,86,60,.55); color:#e3a190;
+    padding:9px 10px; border-radius:8px; font-size:12.5px; cursor:pointer; font-family:inherit; font-weight:600;
+    transition:background .15s, border-color .15s, color .15s;
+  }
+  .catalog-add-new:hover{background:rgba(181,86,60,.16); border-color:var(--clay); color:#fff;}
+
+  .catalog-io-row{display:flex; gap:6px; margin-top:8px;}
+  .catalog-io-btn{
+    flex:1; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:rgba(255,255,255,.78);
+    padding:8px 6px; border-radius:8px; font-size:11.5px; cursor:pointer; font-family:inherit; font-weight:600;
+    transition:background .15s, border-color .15s, color .15s, transform .12s var(--ease);
+  }
+  .catalog-io-btn:hover{background:rgba(255,255,255,.12); border-color:rgba(255,255,255,.25); color:#fff; transform:translateY(-1px);}
+  .catalog-io-btn:active{transform:translateY(0) scale(.96);}
+
+  @media (max-width:1180px){
+    .workspace{flex-direction:column; align-items:center;}
+    .catalog-panel{
+      width:100% !important; max-width:700px; position:static; max-height:420px;
+    }
+    .catalog-resize-handle{display:none;}
+  }
+
   .toolbar{
     display:flex;
     flex-direction:column;
     align-items:center;
     gap:10px;
+    background:rgba(43,45,46,.7);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:16px;
+    padding:14px 18px;
   }
   .toolbar-hint{
     color:rgba(255,255,255,.55);
@@ -53,12 +241,30 @@
     font-weight:600;
     font-size:14px;
     cursor:pointer;
-    transition:background .15s, border-color .15s;
+    transition:background .15s, border-color .15s, transform .12s var(--ease), box-shadow .15s var(--ease);
   }
-  .btn-primary{background:var(--clay); color:#fff;}
-  .btn-primary:hover{background:#974529;}
+  .btn:hover{transform:translateY(-1.5px);}
+  .btn:active{transform:translateY(0) scale(.96);}
+  .btn-primary{background:var(--clay); color:#fff; box-shadow:0 4px 14px rgba(181,86,60,.32);}
+  .btn-primary:hover{background:#974529; box-shadow:0 7px 20px rgba(181,86,60,.42);}
   .btn-ghost{background:transparent; color:#fff; border:1.5px solid rgba(255,255,255,.32);}
-  .btn-ghost:hover{border-color:#fff;}
+  .btn-ghost:hover{border-color:#fff; background:rgba(255,255,255,.06);}
+
+  .save-status{
+    display:flex; align-items:center; gap:6px; font-size:11.5px; color:rgba(255,255,255,.55);
+    opacity:0; transform:translateY(-3px); transition:opacity .35s var(--ease), transform .35s var(--ease);
+    height:14px;
+  }
+  .save-status.show{opacity:1; transform:translateY(0);}
+  .save-dot{
+    width:6px; height:6px; border-radius:50%; background:var(--good); flex-shrink:0;
+  }
+  .save-dot.pulse{animation:dotPulse 1.6s ease-out 1;}
+  @keyframes dotPulse{
+    0%{box-shadow:0 0 0 0 rgba(110,143,92,.55);}
+    70%{box-shadow:0 0 0 7px rgba(110,143,92,0);}
+    100%{box-shadow:0 0 0 0 rgba(110,143,92,0);}
+  }
 
   /* ---------- sheet (the "paper") ---------- */
   .sheet{
@@ -68,7 +274,11 @@
     background:var(--paper);
     box-shadow:0 24px 70px rgba(0,0,0,.45);
     padding:14mm 15mm;
+    position:relative;
+    z-index:1;
+    animation:sheetIn .55s var(--ease);
   }
+  @keyframes sheetIn{from{opacity:0; transform:translateY(20px);} to{opacity:1; transform:translateY(0);}}
 
   /* ---------- header ---------- */
   .doc-header{
@@ -83,9 +293,10 @@
   .logo-upload{
     width:120px; height:120px; display:flex; align-items:center; justify-content:center;
     cursor:pointer; border-radius:8px; border:1.5px dashed transparent;
-    transition:border-color .15s, background .15s;
+    transition:border-color .15s, background .15s, transform .15s var(--ease);
   }
   .logo-upload:hover{border-color:var(--clay); background:rgba(181,86,60,.06);}
+  .logo-upload.drag-over{border-color:var(--clay); background:rgba(181,86,60,.12); transform:scale(1.03);}
   .brand-mark{width:120px; height:120px; object-fit:contain; display:block;}
   .logo-remove-link{
     background:none; border:none; color:var(--muted); font-size:9.5px; text-decoration:underline;
@@ -135,37 +346,56 @@
 
   /* ---------- table ---------- */
   .table-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
-  table{width:100%; border-collapse:collapse; table-layout:fixed; min-width:480px;}
+  table{width:100%; border-collapse:collapse; table-layout:fixed; min-width:520px;}
   thead th{
     background:var(--ink); color:#fff; text-align:left; font-weight:600;
     font-size:11.5px; padding:9px 5px; line-height:1.3;
   }
   thead th.r{text-align:right;}
   tbody td{padding:5px 4px; border-bottom:1px solid var(--line); vertical-align:middle;}
+  #itemsBody tr{animation:rowIn .28s var(--ease);}
+  #itemsBody tr.row-leaving{animation:rowOut .2s ease-in forwards; pointer-events:none;}
+  #itemsBody tr.dragging{opacity:.35;}
+  @keyframes rowIn{from{opacity:0; transform:translateY(-7px);} to{opacity:1; transform:translateY(0);}}
+  @keyframes rowOut{to{opacity:0; transform:translateX(16px);}}
+  .drag-col{width:18px; text-align:center; padding:5px 0 !important;}
+  .drag-handle{
+    cursor:grab; color:var(--line); font-size:14px; letter-spacing:-1px; user-select:none;
+    display:inline-block; padding:4px 2px; border-radius:4px; transition:color .15s, background .15s;
+  }
+  .drag-handle:hover{color:var(--clay); background:rgba(181,86,60,.08);}
+  #itemsBody tr.dragging .drag-handle{cursor:grabbing;}
   .num-col{width:28px; text-align:center; color:var(--muted); font-size:13px;}
   .cell-input{
     width:100%; border:none; background:transparent; font-family:inherit; font-size:13.5px;
-    padding:5px 3px; color:var(--ink);
+    padding:5px 3px; color:var(--ink); border-radius:4px; transition:background .15s;
   }
-  .cell-input:focus{outline:none; background:rgba(181,86,60,.05); border-radius:3px;}
+  .cell-input:focus{outline:none; background:rgba(181,86,60,.07);}
   .qty, .price{text-align:right; width:100%;}
   .unit{width:100%;}
   input[type=number]::-webkit-inner-spin-button,
   input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none; margin:0;}
   input[type=number]{-moz-appearance:textfield;}
-  .amount{text-align:right; font-weight:600; font-size:13.5px; white-space:nowrap;}
+  .amount{text-align:right; font-weight:600; font-size:13.5px; white-space:nowrap; border-radius:4px; transition:background-color .4s ease;}
+  .amount.flash{background-color:rgba(181,86,60,.22);}
   .del-col{width:30px; text-align:center;}
   .del-btn{
     background:none; border:none; color:#b3261e; font-size:17px; line-height:1;
-    cursor:pointer; padding:3px 7px; border-radius:5px;
+    cursor:pointer; padding:3px 7px; border-radius:5px; transition:background .15s, transform .12s;
   }
-  .del-btn:hover{background:#fbe4e1;}
+  .del-btn:hover{background:#fbe4e1; transform:scale(1.1);}
+  .empty-items{
+    text-align:center; color:var(--muted); font-size:13px; padding:26px 10px !important;
+    border-bottom:1px solid var(--line);
+  }
 
   .add-row-btn{
     margin-top:10px; background:transparent; border:1.5px dashed var(--clay); color:var(--clay);
     padding:7px 16px; border-radius:6px; font-size:13px; cursor:pointer; font-family:inherit; font-weight:600;
+    transition:background .15s, transform .12s var(--ease);
   }
-  .add-row-btn:hover{background:var(--clay-soft);}
+  .add-row-btn:hover{background:var(--clay-soft); transform:translateY(-1px);}
+  .add-row-btn:active{transform:translateY(0) scale(.97);}
 
   /* ---------- totals ---------- */
   .totals-wrap{display:flex; justify-content:flex-end; margin-top:16px;}
@@ -175,6 +405,13 @@
     padding:6px 0; font-size:13.5px; border-bottom:1px solid var(--line); gap:8px;
   }
   .totals-row label{color:var(--muted); display:flex; align-items:center; gap:6px;}
+  .totals-toggles{
+    display:flex; gap:14px; flex-wrap:wrap; justify-content:flex-end;
+    padding:2px 0 9px; font-size:11.5px; color:var(--muted);
+  }
+  .totals-toggle{display:flex; align-items:center; gap:5px; cursor:pointer; user-select:none;}
+  .totals-toggle input{cursor:pointer; accent-color:var(--clay); width:13px; height:13px; flex-shrink:0;}
+  .totals-toggle:hover{color:var(--ink);}
   .totals-row .val{font-family:'Sarabun'; font-weight:600;}
   .discount-input{
     width:90px; border:none; border-bottom:1px dashed var(--line); background:transparent;
@@ -221,9 +458,11 @@
   }
   .sig-attach-dropzone{
     width:100%; height:100%; display:flex; align-items:center; justify-content:center;
-    cursor:pointer; border-radius:4px; transition:background .15s; gap:4px;
+    cursor:pointer; border-radius:4px; transition:background .15s, outline-color .15s; gap:4px;
+    outline:1.5px dashed transparent; outline-offset:-2px;
   }
   .sig-attach-dropzone:hover{background:rgba(181,86,60,.06);}
+  .sig-attach-dropzone.drag-over{background:rgba(181,86,60,.12); outline-color:var(--clay);}
   .sig-attach-dropzone span{font-size:10px; color:var(--muted);}
   .sig-attach-preview{width:100%; height:100%; display:none; align-items:center; justify-content:center; position:relative;}
   .sig-attach-preview img{max-width:100%; max-height:100%; object-fit:contain;}
@@ -238,8 +477,10 @@
   /* ---------- attached photo / report pages (3 per A4 page) ---------- */
   .attach-controls{
     width:210mm; max-width:100%; display:flex; align-items:center; justify-content:center;
-    gap:14px; flex-wrap:wrap; padding:4px 10px;
+    gap:14px; flex-wrap:wrap; padding:10px 14px; border-radius:12px;
+    border:1.5px dashed transparent; transition:border-color .15s, background .15s;
   }
+  .attach-controls.drag-over{border-color:rgba(181,86,60,.6); background:rgba(181,86,60,.08);}
   .attach-controls-label{font-size:12.5px; color:rgba(255,255,255,.62); text-align:center;}
   .attach-sheet{
     width:210mm; max-width:100%; min-height:297mm;
@@ -272,10 +513,51 @@
   .attach-caption:focus{outline:none; border-bottom-color:var(--clay);}
   .attach-caption::placeholder{color:var(--muted);}
 
+  /* ---------- toast notifications ---------- */
+  .toast-stack{
+    position:fixed; left:50%; bottom:22px; transform:translateX(-50%);
+    display:flex; flex-direction:column; gap:8px; z-index:200;
+    pointer-events:none; align-items:center; width:100%; max-width:420px; padding:0 16px;
+  }
+  .toast{
+    pointer-events:auto; display:flex; align-items:flex-start; gap:10px;
+    background:var(--ink); color:#fff; padding:12px 16px; border-radius:10px;
+    box-shadow:0 14px 34px rgba(0,0,0,.4); font-size:13.5px; line-height:1.5;
+    border-left:4px solid var(--clay); width:100%;
+    animation:toastIn .3s var(--ease);
+  }
+  .toast.success{border-left-color:var(--good);}
+  .toast.error{border-left-color:#d9756a;}
+  .toast.leaving{animation:toastOut .2s ease-in forwards;}
+  .toast-icon{flex-shrink:0; font-weight:700; width:16px; text-align:center;}
+  @keyframes toastIn{from{opacity:0; transform:translateY(16px) scale(.95);} to{opacity:1; transform:translateY(0) scale(1);}}
+  @keyframes toastOut{to{opacity:0; transform:translateY(-8px) scale(.95);}}
+
+  /* ---------- custom confirm modal ---------- */
+  .confirm-overlay{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.55);
+    align-items:center; justify-content:center; z-index:120; padding:20px;
+  }
+  .confirm-overlay.open{display:flex;}
+  .confirm-panel{
+    background:var(--paper); width:380px; max-width:100%; border-radius:12px; overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,.4); animation:confirmIn .22s var(--ease);
+  }
+  @keyframes confirmIn{from{opacity:0; transform:translateY(10px) scale(.97);} to{opacity:1; transform:translateY(0) scale(1);}}
+  .confirm-strip{height:6px; background:repeating-linear-gradient(135deg, var(--clay) 0 10px, #974529 10px 20px);}
+  .confirm-body{padding:22px 22px 18px;}
+  .confirm-body p{margin:0 0 20px; font-size:14px; line-height:1.7; color:var(--ink);}
+  .confirm-actions{display:flex; justify-content:flex-end; gap:10px;}
+  .btn-cancel{background:transparent; color:var(--muted); border:1.5px solid var(--line); padding:9px 18px; border-radius:8px; font-family:inherit; font-weight:600; font-size:13.5px; cursor:pointer; transition:border-color .15s, color .15s;}
+  .btn-cancel:hover{border-color:var(--muted); color:var(--ink);}
+  .btn-confirm{background:var(--clay); color:#fff; border:none; padding:9px 18px; border-radius:8px; font-family:inherit; font-weight:600; font-size:13.5px; cursor:pointer; transition:background .15s, transform .12s;}
+  .btn-confirm:hover{background:#974529;}
+  .btn-confirm:active{transform:scale(.96);}
+
   /* ---------- saved quotes modal ---------- */
   .saved-overlay{
     display:none; position:fixed; inset:0; background:rgba(0,0,0,.55);
-    align-items:center; justify-content:center; z-index:50; padding:20px;
+    align-items:center; justify-content:center; z-index:100; padding:20px;
   }
   .saved-overlay.open{display:flex;}
   .saved-panel{
@@ -302,7 +584,10 @@
   .btn-small{
     border:none; border-radius:6px; padding:6px 12px; font-size:12px; font-weight:600;
     cursor:pointer; font-family:'Sarabun', sans-serif; white-space:nowrap;
+    transition:background .15s, transform .12s var(--ease);
   }
+  .btn-small:hover{transform:translateY(-1px);}
+  .btn-small:active{transform:translateY(0) scale(.96);}
   .btn-load{background:var(--clay); color:#fff;}
   .btn-load:hover{background:#974529;}
   .btn-del{background:transparent; color:#b3261e; border:1.5px solid #e8b6b1;}
@@ -313,8 +598,9 @@
   @media print{
     body{background:#fff;}
     .page-shell{padding:0; background:#fff;}
+    .page-shell::before{display:none;}
     .toolbar{display:none;}
-    .sheet{box-shadow:none; width:auto; min-height:auto; padding:0;}
+    .sheet{box-shadow:none; width:auto; min-height:auto; padding:0; animation:none;}
     .no-print{display:none !important;}
     .cell-input, .info-line input, .meta-row input, .company-name, .company-sub{border-bottom-color:transparent !important;}
 
@@ -342,11 +628,67 @@
 
     @page{size:A4; margin:10mm 12mm;}
   }
+
+  /* ---------- mobile ---------- */
+  @media (max-width:680px){
+    .sheet{padding:9mm 6mm;}
+    .doc-header{flex-direction:column;}
+    .doc-meta{text-align:left; width:100%;}
+    .meta-row{justify-content:flex-start;}
+    .meta-row input{text-align:left;}
+    .info-grid{grid-template-columns:1fr; gap:14px;}
+    .company-name, .company-sub{width:100%;}
+    .toolbar{padding:12px;}
+    .toolbar-btns{gap:8px;}
+    .btn{padding:9px 14px; font-size:12.5px;}
+    .signatures{margin-top:34px;}
+    .catalog-panel{max-height:340px;}
+    .catalog-row-name{font-size:12.5px;}
+  }
 </style>
 </head>
 <body>
 
 <div class="page-shell">
+
+  <div class="toast-stack no-print" id="toastStack"></div>
+
+  <div class="confirm-overlay no-print" id="confirmOverlay">
+    <div class="confirm-panel">
+      <div class="confirm-strip"></div>
+      <div class="confirm-body">
+        <p id="confirmMessage"></p>
+        <div class="confirm-actions">
+          <button type="button" class="btn-cancel" id="confirmCancelBtn">ยกเลิก</button>
+          <button type="button" class="btn-confirm" id="confirmOkBtn">ยืนยัน</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="workspace">
+
+    <aside class="catalog-panel no-print" id="catalogPanel">
+      <div class="catalog-head" onclick="toggleCatalogPanel()">
+        <div class="catalog-title"><span class="catalog-title-icon">📋</span><span>คลังรายการ</span></div>
+        <button type="button" class="catalog-toggle" id="catalogToggleBtn" title="ย่อ/ขยายคลังรายการ" onclick="event.stopPropagation(); toggleCatalogPanel()">▾</button>
+      </div>
+      <div class="catalog-body" id="catalogBody">
+        <div class="catalog-hint">กด “+” เพื่อส่งรายการเข้าใบเสนอราคาทันที แก้ชื่อ/หน่วย/ราคาที่นี่ได้เลย — คลังนี้จะถูกจำไว้ใช้ครั้งต่อไปเสมอ</div>
+        <input type="text" class="catalog-search" id="catalogSearch" placeholder="ค้นหารายการในคลัง..." oninput="renderCatalog()">
+        <div class="catalog-list" id="catalogList"></div>
+        <button type="button" class="catalog-add-new" onclick="addCatalogItem()">+ เพิ่มรายการใหม่ในคลัง</button>
+        <div class="catalog-io-row">
+          <button type="button" class="catalog-io-btn" onclick="exportCatalogFile()">⬇️ ส่งออกไฟล์</button>
+          <button type="button" class="catalog-io-btn" onclick="document.getElementById('catalogImportInput').click()">⬆️ นำเข้าไฟล์</button>
+        </div>
+        <input type="file" id="catalogImportInput" accept=".txt,text/plain" class="no-print" style="display:none;" onchange="handleCatalogImport(event)">
+      </div>
+      <div class="catalog-resize-handle no-print" id="catalogResizeHandle" title="ลากเพื่อปรับความกว้าง"></div>
+    </aside>
+
+
+    <div class="doc-column">
 
   <div class="toolbar no-print">
     <div class="toolbar-hint">"เซฟ" เก็บไว้ในเบราว์เซอร์ (ใช้สะดวกระหว่างวัน) — "ดาวน์โหลดไฟล์" เก็บถาวรไว้ในเครื่อง ไม่หายแม้เคลียร์เบราว์เซอร์</div>
@@ -358,6 +700,7 @@
       <button class="btn btn-ghost" onclick="document.getElementById('importFileInput').click()">📁 เปิดไฟล์</button>
       <button class="btn btn-ghost" onclick="clearData()">🗑️ ล้างข้อมูล</button>
     </div>
+    <div class="save-status" id="saveStatus"><span class="save-dot"></span><span id="saveStatusText"></span></div>
     <input type="file" id="importFileInput" accept=".json,application/json" style="display:none;">
   </div>
 
@@ -433,16 +776,18 @@
     <div class="table-wrap">
       <table>
         <colgroup>
+          <col class="no-print" style="width:18px;">
           <col style="width:22px;">
           <col>
           <col style="width:60px;">
           <col style="width:50px;">
           <col style="width:76px;">
           <col style="width:94px;">
-          <col style="width:26px;">
+          <col class="no-print" style="width:26px;">
         </colgroup>
         <thead>
           <tr>
+            <th class="no-print" style="width:18px;"></th>
             <th style="width:28px;">#</th>
             <th>รายการ</th>
             <th class="r">จำนวน</th>
@@ -464,13 +809,19 @@
           <label>รวมเป็นเงิน</label>
           <span class="val mono" id="subtotalDisplay">0.00</span>
         </div>
-        <div class="totals-row">
+
+        <div class="totals-toggles no-print">
+          <label class="totals-toggle"><input type="checkbox" id="showDiscount" checked onchange="onTotalsToggleChange()"> ส่วนลด</label>
+          <label class="totals-toggle"><input type="checkbox" id="showVat" checked onchange="onTotalsToggleChange()"> VAT</label>
+          <label class="totals-toggle"><input type="checkbox" id="showWht" onchange="onTotalsToggleChange()"> หัก ณ ที่จ่าย</label>
+        </div>
+
+        <div class="totals-row" id="discountRow" style="display:flex;">
           <label>หักส่วนลด</label>
-          <input type="number" class="discount-input" id="discountInput" value="0" min="0" step="0.01">
+          <input type="text" inputmode="decimal" class="discount-input" id="discountInput" value="0" onfocus="plainNumberForEdit(this)" onblur="formatThousands(this)">
         </div>
         <div class="totals-row" id="vatRow" style="display:flex;">
           <label>
-            <input type="checkbox" id="vatCheck" checked>
             ภาษีมูลค่าเพิ่ม
             <input type="number" class="rate-input" id="vatRate" value="7" min="0" step="0.1">%
           </label>
@@ -478,7 +829,6 @@
         </div>
         <div class="totals-row" id="whtRow" style="display:none;">
           <label>
-            <input type="checkbox" id="whtCheck">
             หัก ณ ที่จ่าย
             <input type="number" class="rate-input" id="whtRate" value="3" min="0" step="0.1">%
           </label>
@@ -537,61 +887,174 @@
 
   </div>
 
-  <div class="attach-controls no-print">
+  <div class="attach-controls no-print" id="attachControls">
     <div class="attach-controls-label">แนบรูปภาพ/รายงานเพิ่มเติม — แสดงในหน้าถัดไป หน้าละ 3 รูป พร้อมคำอธิบายใต้ภาพ</div>
     <button type="button" class="btn btn-ghost" onclick="document.getElementById('attachPhotoInput').click()">+ เพิ่มรูปภาพ</button>
     <input type="file" id="attachPhotoInput" accept="image/*" multiple style="display:none;">
   </div>
   <div id="attachPagesContainer"></div>
 
+    </div>
+
+  </div>
+
 </div>
 
 <script>
 let rowCount = 0;
+let draggedRow = null;
 
 function createRow(name, qty, unit, price){
+  const emptyRow = document.querySelector('.empty-items-row');
+  if(emptyRow) emptyRow.remove();
+
   rowCount++;
   const tr = document.createElement('tr');
   tr.innerHTML =
+    '<td class="no-print drag-col"><span class="drag-handle" title="ลากเพื่อจัดลำดับ">⠿⠿</span></td>' +
     '<td class="num-col">' + rowCount + '</td>' +
     '<td><input type="text" class="cell-input item-name" value="' + (name||'') + '" placeholder="ระบุรายการ..."></td>' +
     '<td><input type="number" class="cell-input qty mono" value="' + (qty!==undefined?qty:1) + '" min="0" step="0.01"></td>' +
     '<td><input type="text" class="cell-input unit" value="' + (unit||'งาน') + '" placeholder="หน่วย"></td>' +
     '<td><input type="number" class="cell-input price mono" value="' + (price!==undefined?price:0) + '" min="0" step="0.01"></td>' +
     '<td class="amount mono">0.00</td>' +
-    '<td class="no-print del-col"><button type="button" class="del-btn" onclick="removeRow(this)">×</button></td>';
+    '<td class="no-print del-col"><button type="button" class="del-btn" onclick="removeRow(this)" title="ลบรายการนี้">×</button></td>';
   document.getElementById('itemsBody').appendChild(tr);
+  attachRowDnD(tr);
   updateRowAmount(tr);
+  return tr;
+}
+
+function attachRowDnD(tr){
+  const handle = tr.querySelector('.drag-handle');
+  const enableDrag = () => { tr.draggable = true; };
+  handle.addEventListener('mousedown', enableDrag);
+  handle.addEventListener('touchstart', enableDrag, {passive:true});
+  tr.addEventListener('dragstart', (e) => {
+    draggedRow = tr;
+    tr.classList.add('dragging');
+    if(e.dataTransfer){ e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', ''); }
+  });
+  tr.addEventListener('dragend', () => {
+    tr.classList.remove('dragging');
+    tr.draggable = false;
+    draggedRow = null;
+    renumber();
+  });
+}
+
+function showEmptyItemsState(){
+  const tbody = document.getElementById('itemsBody');
+  if(tbody.querySelector('.empty-items-row')) return;
+  const tr = document.createElement('tr');
+  tr.className = 'empty-items-row';
+  tr.innerHTML = '<td colspan="8" class="empty-items">ยังไม่มีรายการ — กด "+ เพิ่มรายการ" หรือเลือกจาก "เพิ่มด่วน" ด้านล่าง</td>';
+  tbody.appendChild(tr);
 }
 
 function updateRowAmount(tr){
   const qty = parseFloat(tr.querySelector('.qty').value) || 0;
   const price = parseFloat(tr.querySelector('.price').value) || 0;
   const amount = qty * price;
-  tr.querySelector('.amount').textContent = fmt(amount);
+  const amountCell = tr.querySelector('.amount');
+  amountCell.textContent = fmt(amount);
+  amountCell.classList.remove('flash');
+  void amountCell.offsetWidth;
+  amountCell.classList.add('flash');
   tr.dataset.amount = amount;
   recalcTotals();
 }
 
 function removeRow(btn){
-  btn.closest('tr').remove();
-  renumber();
-  recalcTotals();
+  const tr = btn.closest('tr');
+  tr.classList.add('row-leaving');
+  tr.addEventListener('animationend', () => {
+    tr.remove();
+    renumber();
+    recalcTotals();
+    if(document.querySelectorAll('#itemsBody tr').length === 0) showEmptyItemsState();
+  }, {once:true});
 }
 
 function renumber(){
   document.querySelectorAll('#itemsBody tr').forEach((tr, i) => {
-    tr.querySelector('.num-col').textContent = i + 1;
+    const numCell = tr.querySelector('.num-col');
+    if(numCell) numCell.textContent = i + 1;
   });
 }
 
 function addRow(){
-  createRow('', 1, 'งาน', 0);
+  const tr = createRow('', 1, 'งาน', 0);
   renumber();
+  const nameInput = tr.querySelector('.item-name');
+  if(nameInput) nameInput.focus();
 }
+
+document.getElementById('itemsBody').addEventListener('dragover', (e) => {
+  if(!draggedRow) return;
+  e.preventDefault();
+  const target = e.target.closest('tr');
+  if(!target || target === draggedRow || target.classList.contains('empty-items-row')) return;
+  const rect = target.getBoundingClientRect();
+  const before = (e.clientY - rect.top) < rect.height / 2;
+  target.parentNode.insertBefore(draggedRow, before ? target : target.nextSibling);
+});
 
 function fmt(n){
   return n.toLocaleString('th-TH', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function parseNum(value){
+  return parseFloat(String(value).replace(/,/g, '')) || 0;
+}
+
+function formatThousands(el){
+  const raw = parseNum(el.value);
+  el.value = raw.toLocaleString('th-TH', {maximumFractionDigits:2});
+}
+
+function plainNumberForEdit(el){
+  const raw = parseNum(el.value);
+  el.value = raw === 0 ? '' : String(raw);
+}
+
+function prefersReducedMotion(){
+  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+const _animFrames = {};
+function animateValue(el, to){
+  const from = parseFloat((el.textContent || '0').replace(/,/g, '')) || 0;
+  if(prefersReducedMotion() || Math.abs(to - from) < 0.005){
+    el.textContent = fmt(to);
+    return;
+  }
+  if(_animFrames[el.id]) cancelAnimationFrame(_animFrames[el.id]);
+  const duration = 360;
+  const start = performance.now();
+  function step(now){
+    const t = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = fmt(from + (to - from) * eased);
+    if(t < 1){
+      _animFrames[el.id] = requestAnimationFrame(step);
+    } else {
+      el.textContent = fmt(to);
+      delete _animFrames[el.id];
+    }
+  }
+  _animFrames[el.id] = requestAnimationFrame(step);
+}
+
+function updateTotalsVisibility(){
+  document.getElementById('discountRow').style.display = document.getElementById('showDiscount').checked ? 'flex' : 'none';
+  document.getElementById('vatRow').style.display = document.getElementById('showVat').checked ? 'flex' : 'none';
+  document.getElementById('whtRow').style.display = document.getElementById('showWht').checked ? 'flex' : 'none';
+}
+
+function onTotalsToggleChange(){
+  updateTotalsVisibility();
+  recalcTotals();
 }
 
 function recalcTotals(){
@@ -600,23 +1063,25 @@ function recalcTotals(){
     subtotal += parseFloat(tr.dataset.amount) || 0;
   });
 
-  const discount = parseFloat(document.getElementById('discountInput').value) || 0;
+  const discount = document.getElementById('showDiscount').checked
+    ? parseNum(document.getElementById('discountInput').value)
+    : 0;
   const afterDiscount = Math.max(subtotal - discount, 0);
 
-  const vatChecked = document.getElementById('vatCheck').checked;
+  const vatChecked = document.getElementById('showVat').checked;
   const vatRate = parseFloat(document.getElementById('vatRate').value) || 0;
   const vatAmount = vatChecked ? afterDiscount * vatRate / 100 : 0;
 
-  const whtChecked = document.getElementById('whtCheck').checked;
+  const whtChecked = document.getElementById('showWht').checked;
   const whtRate = parseFloat(document.getElementById('whtRate').value) || 0;
   const whtAmount = whtChecked ? afterDiscount * whtRate / 100 : 0;
 
   const grandTotal = afterDiscount + vatAmount - whtAmount;
 
-  document.getElementById('subtotalDisplay').textContent = fmt(subtotal);
-  document.getElementById('vatAmountDisplay').textContent = fmt(vatAmount);
-  document.getElementById('whtAmountDisplay').textContent = fmt(whtAmount);
-  document.getElementById('grandTotalDisplay').textContent = fmt(grandTotal);
+  animateValue(document.getElementById('subtotalDisplay'), subtotal);
+  animateValue(document.getElementById('vatAmountDisplay'), vatAmount);
+  animateValue(document.getElementById('whtAmountDisplay'), whtAmount);
+  animateValue(document.getElementById('grandTotalDisplay'), grandTotal);
   document.getElementById('bahtTextDisplay').textContent = '(' + thaiBahtText(grandTotal) + ')';
 }
 
@@ -660,12 +1125,321 @@ function thaiBahtText(amount){
   return text;
 }
 
+/* ---------- item catalog (reusable price list, persists across quotations) ---------- */
+const CATALOG_KEY = 'itemCatalogV1';
+let itemCatalog = [];
+let catalogSeq = 0;
+
+function defaultCatalog(){
+  return [
+    { name:'รื้อถอนหลังคาเดิม และขนทิ้งนอกสถานที่', unit:'งาน', price:8000 },
+    { name:'โครงหลังคาเหล็กกล่อง ชุบกันสนิม', unit:'ตร.ม.', price:450 },
+    { name:'มุงกระเบื้องหลังคาคอนกรีต พร้อมอุปกรณ์ยึด', unit:'ตร.ม.', price:380 },
+    { name:'แผ่นสะท้อนความร้อนใต้หลังคา (กันร้อน)', unit:'ตร.ม.', price:120 },
+    { name:'ครอบสันหลังคา', unit:'ม.', price:220 },
+    { name:'รางน้ำฝน พร้อมติดตั้ง', unit:'ม.', price:280 },
+    { name:'งานทาสีกันสนิมโครงหลังคา', unit:'ตร.ม.', price:90 },
+    { name:'ค่าแรงติดตั้ง + ขนส่งวัสดุ', unit:'งาน', price:15000 }
+  ].map(it => { catalogSeq++; return Object.assign({ id:'cat' + catalogSeq }, it); });
+}
+
+function loadCatalog(){
+  try{
+    const raw = localStorage.getItem(CATALOG_KEY);
+    if(raw){
+      itemCatalog = JSON.parse(raw);
+      let maxSeq = 0;
+      itemCatalog.forEach(it => {
+        const n = parseInt(String(it.id || '').replace('cat', ''), 10);
+        if(!isNaN(n) && n > maxSeq) maxSeq = n;
+      });
+      catalogSeq = maxSeq;
+    } else {
+      itemCatalog = defaultCatalog();
+      saveCatalog();
+    }
+  } catch(e){
+    itemCatalog = defaultCatalog();
+  }
+
+  try{
+    if(localStorage.getItem('catalogCollapsed') === '1'){
+      document.getElementById('catalogPanel').classList.add('collapsed');
+      document.getElementById('catalogToggleBtn').textContent = '▸';
+    }
+  } catch(e){}
+
+  renderCatalog();
+}
+
+function saveCatalog(){
+  try{ localStorage.setItem(CATALOG_KEY, JSON.stringify(itemCatalog)); } catch(e){}
+}
+
+function addCatalogItem(){
+  catalogSeq++;
+  const newId = 'cat' + catalogSeq;
+  itemCatalog.push({ id:newId, name:'', unit:'งาน', price:0, color:'none' });
+  saveCatalog();
+  const search = document.getElementById('catalogSearch');
+  if(search) search.value = '';
+  renderCatalog();
+  requestAnimationFrame(() => {
+    const row = document.querySelector('.catalog-row[data-id="' + newId + '"]');
+    const nameInput = row && row.querySelector('.catalog-row-name');
+    if(nameInput) nameInput.focus();
+  });
+}
+
+const CATALOG_COLOR_ORDER = ['none', 'clay', 'sage', 'blue', 'gold', 'rose', 'teal'];
+const CATALOG_COLOR_HEX = { clay:'#B5563C', sage:'#7C9473', blue:'#6E8CA0', gold:'#C99A4A', rose:'#B66B7C', teal:'#5FA3A3' };
+
+function catalogAccentColor(key){
+  return CATALOG_COLOR_HEX[key] || null;
+}
+
+function cycleCatalogColor(id){
+  const item = itemCatalog.find(it => it.id === id);
+  if(!item) return;
+  const current = CATALOG_COLOR_ORDER.includes(item.color) ? item.color : 'none';
+  const idx = CATALOG_COLOR_ORDER.indexOf(current);
+  item.color = CATALOG_COLOR_ORDER[(idx + 1) % CATALOG_COLOR_ORDER.length];
+  saveCatalog();
+  renderCatalog();
+}
+
+function updateCatalogItem(id, field, value){
+  const item = itemCatalog.find(it => it.id === id);
+  if(!item) return;
+  item[field] = (field === 'price') ? (parseFloat(value) || 0) : value;
+  saveCatalog();
+}
+
+async function removeCatalogItem(id){
+  const item = itemCatalog.find(it => it.id === id);
+  const ok = await customConfirm('ลบ "' + (item && item.name ? item.name : 'รายการนี้') + '" ออกจากคลังถาวร?', 'ลบออกจากคลัง');
+  if(!ok) return;
+  itemCatalog = itemCatalog.filter(it => it.id !== id);
+  saveCatalog();
+  renderCatalog();
+}
+
+function addToQuoteFromCatalog(id){
+  const item = itemCatalog.find(it => it.id === id);
+  if(!item) return;
+  const tr = createRow(item.name || 'รายการใหม่', 1, item.unit || 'งาน', item.price || 0);
+  renumber();
+  recalcTotals();
+  showToast('เพิ่ม "' + (item.name || 'รายการใหม่') + '" เข้าใบเสนอราคาแล้ว', 'success', 2200);
+  const qtyInput = tr.querySelector('.qty');
+  if(qtyInput){ qtyInput.focus(); qtyInput.select(); }
+}
+
+function renderCatalog(){
+  const list = document.getElementById('catalogList');
+  if(!list) return;
+  const searchEl = document.getElementById('catalogSearch');
+  const q = (searchEl ? searchEl.value : '').trim().toLowerCase();
+  const filtered = (q ? itemCatalog.filter(it => (it.name || '').toLowerCase().includes(q)) : itemCatalog.slice())
+    .sort((a, b) => (a.name || '').localeCompare((b.name || ''), 'th'));
+
+  if(filtered.length === 0){
+    list.innerHTML = '<div class="catalog-empty">' +
+      (q ? 'ไม่พบรายการที่ค้นหา' : 'ยังไม่มีรายการในคลัง<br>กด "+ เพิ่มรายการใหม่ในคลัง" ด้านล่าง') +
+      '</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(item => {
+    const accent = catalogAccentColor(item.color);
+    const rowStyle = accent ? ' style="border-left-color:' + accent + ';"' : '';
+    const dotStyle = 'background:' + (accent || 'transparent') + '; border-color:' + (accent || 'rgba(255,255,255,.35)') + ';';
+    const priceStyle = accent ? ' style="color:' + accent + ';"' : '';
+    return `
+    <div class="catalog-row"${rowStyle} data-id="${item.id}">
+      <div class="catalog-row-top">
+        <button type="button" class="catalog-color-dot" style="${dotStyle}" onclick="cycleCatalogColor('${item.id}')" title="คลิกเพื่อตั้งสีหมวดหมู่"></button>
+        <input type="text" class="catalog-row-name" value="${escapeHtml(item.name)}" placeholder="ชื่อรายการ" oninput="updateCatalogItem('${item.id}','name',this.value)">
+      </div>
+      <div class="catalog-row-controls">
+        <input type="text" class="catalog-row-unit" value="${escapeHtml(item.unit)}" placeholder="หน่วย" oninput="updateCatalogItem('${item.id}','unit',this.value)">
+        <input type="number" class="catalog-row-price mono"${priceStyle} value="${item.price || 0}" min="0" step="0.01" oninput="updateCatalogItem('${item.id}','price',this.value)">
+        <button type="button" class="catalog-row-add" onclick="addToQuoteFromCatalog('${item.id}')" title="เพิ่มเข้าใบเสนอราคา">+</button>
+        <button type="button" class="catalog-row-del" onclick="removeCatalogItem('${item.id}')" title="ลบออกจากคลัง">×</button>
+      </div>
+    </div>
+  `;
+  }).join('');
+}
+
+function toggleCatalogPanel(){
+  const panel = document.getElementById('catalogPanel');
+  const collapsed = panel.classList.toggle('collapsed');
+  document.getElementById('catalogToggleBtn').textContent = collapsed ? '▸' : '▾';
+  try{ localStorage.setItem('catalogCollapsed', collapsed ? '1' : '0'); } catch(e){}
+}
+
+/* ---------- catalog export / import (plain text, tab-separated) ---------- */
+function exportCatalogFile(){
+  if(itemCatalog.length === 0){
+    showToast('คลังรายการยังว่างอยู่ ไม่มีอะไรให้ส่งออก', 'error');
+    return;
+  }
+  const lines = ['ชื่อรายการ\tหน่วย\tราคา/หน่วย'];
+  itemCatalog.forEach(it => {
+    lines.push([it.name || '', it.unit || '', String(it.price || 0)].join('\t'));
+  });
+  const text = lines.join('\n');
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const today = new Date().toISOString().split('T')[0];
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `คลังรายการ_${today}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('ส่งออกคลังรายการเป็นไฟล์ .txt แล้ว', 'success');
+}
+
+function handleCatalogImport(evt){
+  const file = evt.target.files && evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const text = String(e.target.result || '');
+      const lines = text.split(/\r\n|\r|\n/).map(l => l.trim()).filter(l => l.length > 0);
+      if(lines.length && lines[0].replace(/\s+/g, '').startsWith('ชื่อรายการ')){
+        lines.shift();
+      }
+      let added = 0;
+      lines.forEach(line => {
+        const parts = line.includes('\t') ? line.split('\t') : line.split(',');
+        const name = (parts[0] || '').trim();
+        if(!name) return;
+        const unit = (parts[1] || '').trim() || 'งาน';
+        const price = parseFloat((parts[2] || '0').replace(/,/g, '')) || 0;
+        catalogSeq++;
+        itemCatalog.push({ id: 'cat' + catalogSeq, name, unit, price });
+        added++;
+      });
+      if(added === 0){
+        showToast('ไม่พบรายการในไฟล์นี้ ตรวจสอบรูปแบบไฟล์อีกครั้ง', 'error', 4500);
+        return;
+      }
+      saveCatalog();
+      renderCatalog();
+      showToast('นำเข้า ' + added + ' รายการเข้าคลังแล้ว', 'success');
+    } catch(err){
+      showToast('เปิดไฟล์นี้ไม่ได้ — ตรวจสอบว่าเป็นไฟล์ .txt ที่ถูกต้อง', 'error', 4500);
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+  evt.target.value = '';
+}
+
+/* ---------- catalog panel resize (drag handle) ---------- */
+function setupCatalogResize(){
+  const handle = document.getElementById('catalogResizeHandle');
+  const panel = document.getElementById('catalogPanel');
+  if(!handle || !panel) return;
+
+  const MIN_W = 280, MAX_W = 720, DEFAULT_W = 380;
+
+  try{
+    const saved = parseFloat(localStorage.getItem('catalogPanelWidth'));
+    if(saved && saved >= MIN_W && saved <= MAX_W) panel.style.width = saved + 'px';
+  } catch(e){}
+
+  let dragging = false, startX = 0, startW = 0;
+
+  function clamp(w){ return Math.min(MAX_W, Math.max(MIN_W, w)); }
+
+  function startDrag(clientX){
+    dragging = true;
+    startX = clientX;
+    startW = panel.getBoundingClientRect().width;
+    handle.classList.add('resizing');
+    document.body.classList.add('catalog-resizing');
+  }
+  function moveDrag(clientX){
+    if(!dragging) return;
+    panel.style.width = clamp(startW + (clientX - startX)) + 'px';
+  }
+  function endDrag(){
+    if(!dragging) return;
+    dragging = false;
+    handle.classList.remove('resizing');
+    document.body.classList.remove('catalog-resizing');
+    try{ localStorage.setItem('catalogPanelWidth', parseFloat(panel.style.width)); } catch(e){}
+  }
+
+  handle.addEventListener('mousedown', e => { e.preventDefault(); startDrag(e.clientX); });
+  window.addEventListener('mousemove', e => moveDrag(e.clientX));
+  window.addEventListener('mouseup', endDrag);
+  handle.addEventListener('touchstart', e => startDrag(e.touches[0].clientX), { passive:true });
+  window.addEventListener('touchmove', e => moveDrag(e.touches[0].clientX), { passive:true });
+  window.addEventListener('touchend', endDrag);
+
+  handle.addEventListener('dblclick', () => {
+    panel.style.width = DEFAULT_W + 'px';
+    try{ localStorage.setItem('catalogPanelWidth', DEFAULT_W); } catch(e){}
+    showToast('รีเซ็ตความกว้างคลังรายการแล้ว', 'info', 1800);
+  });
+}
+
 function printDoc(){ window.print(); }
+
+/* ---------- toast notifications (replaces alert()) ---------- */
+function showToast(message, type, duration){
+  type = type || 'info';
+  duration = duration || 3200;
+  const stack = document.getElementById('toastStack');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  const icon = type === 'success' ? '✓' : (type === 'error' ? '!' : 'ℹ');
+  el.innerHTML = '<span class="toast-icon">' + icon + '</span><span>' + escapeHtml(message) + '</span>';
+  stack.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('leaving');
+    el.addEventListener('animationend', () => el.remove(), {once:true});
+  }, duration);
+}
+
+/* ---------- custom confirm modal (replaces confirm()) ---------- */
+function customConfirm(message, confirmLabel){
+  return new Promise(resolve => {
+    document.getElementById('confirmMessage').textContent = message;
+    const okBtn = document.getElementById('confirmOkBtn');
+    okBtn.textContent = confirmLabel || 'ยืนยัน';
+    const overlay = document.getElementById('confirmOverlay');
+    const cancelBtn = document.getElementById('confirmCancelBtn');
+    overlay.classList.add('open');
+
+    function cleanup(result){
+      overlay.classList.remove('open');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      overlay.removeEventListener('click', onOverlay);
+      resolve(result);
+    }
+    function onOk(){ cleanup(true); }
+    function onCancel(){ cleanup(false); }
+    function onOverlay(e){ if(e.target === overlay) cleanup(false); }
+
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    overlay.addEventListener('click', onOverlay);
+  });
+}
 
 /* ---------- collect / apply form data ---------- */
 function collectFormData(){
   const items = [];
   document.querySelectorAll('#itemsBody tr').forEach(tr => {
+    if(tr.classList.contains('empty-items-row')) return;
     items.push({
       name: tr.querySelector('.item-name').value,
       qty: tr.querySelector('.qty').value,
@@ -688,10 +1462,11 @@ function collectFormData(){
     workType: document.getElementById('workType').value,
     areaApprox: document.getElementById('areaApprox').value,
     items: items,
-    discount: document.getElementById('discountInput').value,
-    vatChecked: document.getElementById('vatCheck').checked,
+    discount: parseNum(document.getElementById('discountInput').value),
+    showDiscount: document.getElementById('showDiscount').checked,
+    vatChecked: document.getElementById('showVat').checked,
     vatRate: document.getElementById('vatRate').value,
-    whtChecked: document.getElementById('whtCheck').checked,
+    whtChecked: document.getElementById('showWht').checked,
     whtRate: document.getElementById('whtRate').value,
     termsHtml: document.getElementById('termsContent').innerHTML,
     issuerSignature: (document.getElementById('issuerSigPreview').style.display !== 'none' ? document.getElementById('issuerSigImg').src : ''),
@@ -715,10 +1490,13 @@ function applyFormData(data){
   document.getElementById('workType').value = data.workType || '';
   document.getElementById('areaApprox').value = data.areaApprox || '';
   document.getElementById('discountInput').value = data.discount || 0;
-  document.getElementById('vatCheck').checked = !!data.vatChecked;
+  formatThousands(document.getElementById('discountInput'));
+  document.getElementById('showDiscount').checked = (data.showDiscount !== undefined) ? !!data.showDiscount : true;
+  document.getElementById('showVat').checked = !!data.vatChecked;
   document.getElementById('vatRate').value = data.vatRate || 7;
-  document.getElementById('whtCheck').checked = !!data.whtChecked;
+  document.getElementById('showWht').checked = !!data.whtChecked;
   document.getElementById('whtRate').value = data.whtRate || 3;
+  updateTotalsVisibility();
   document.getElementById('termsContent').innerHTML = data.termsHtml || '';
 
   if (data.issuerSignature) setIssuerSig(data.issuerSignature); else removeIssuerSig();
@@ -732,6 +1510,7 @@ function applyFormData(data){
   document.getElementById('itemsBody').innerHTML = '';
   rowCount = 0;
   (data.items || []).forEach(it => createRow(it.name, it.qty, it.unit, it.price));
+  if(document.querySelectorAll('#itemsBody tr').length === 0) showEmptyItemsState();
   renumber();
   recalcTotals();
 }
@@ -770,7 +1549,7 @@ function setIndex(list){
 
 function saveQuote(){
   if(!storageAvailable()){
-    alert('เบราว์เซอร์นี้บันทึกข้อมูลไม่ได้ครับ (ฟีเจอร์นี้ต้องเปิดไฟล์ผ่าน Chrome โดยตรง ไม่ใช่หน้าต่างพรีวิวของ Claude.ai)');
+    showToast('เบราว์เซอร์นี้บันทึกข้อมูลไม่ได้ครับ (ฟีเจอร์นี้ต้องเปิดไฟล์ผ่าน Chrome โดยตรง ไม่ใช่หน้าต่างพรีวิวของ Claude.ai)', 'error', 5000);
     return;
   }
   const data = collectFormData();
@@ -787,10 +1566,25 @@ function saveQuote(){
       savedAt: new Date().toISOString()
     });
     setIndex(idx);
-    alert('บันทึกใบเสนอราคาไว้ในเบราว์เซอร์เรียบร้อยแล้ว');
+    showToast('บันทึกใบเสนอราคาไว้ในเบราว์เซอร์เรียบร้อยแล้ว', 'success');
+    updateSaveStatus();
   } catch(e){
-    alert('บันทึกไม่สำเร็จ พื้นที่จัดเก็บของเบราว์เซอร์อาจเต็ม ลองลบรายการเก่าบางส่วนก่อนครับ');
+    showToast('บันทึกไม่สำเร็จ พื้นที่จัดเก็บของเบราว์เซอร์อาจเต็ม ลองลบรายการเก่าบางส่วนก่อนครับ', 'error', 5000);
   }
+}
+
+function updateSaveStatus(){
+  const status = document.getElementById('saveStatus');
+  const text = document.getElementById('saveStatusText');
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  text.textContent = 'บันทึกล่าสุด ' + hh + ':' + mm + ' น.';
+  status.classList.add('show');
+  const dot = status.querySelector('.save-dot');
+  dot.classList.remove('pulse');
+  void dot.offsetWidth;
+  dot.classList.add('pulse');
 }
 
 /* ---------- Download / open as a real file on the PC ---------- */
@@ -819,9 +1613,9 @@ document.getElementById('importFileInput').addEventListener('change', e => {
     try{
       const data = JSON.parse(evt.target.result);
       applyFormData(data);
-      alert('โหลดข้อมูลจากไฟล์เรียบร้อยแล้ว');
+      showToast('โหลดข้อมูลจากไฟล์เรียบร้อยแล้ว', 'success');
     } catch(err){
-      alert('ไฟล์นี้เปิดไม่ได้ — อาจไม่ใช่ไฟล์ที่ดาวน์โหลดจากใบเสนอราคานี้ หรือไฟล์เสียหาย');
+      showToast('ไฟล์นี้เปิดไม่ได้ — อาจไม่ใช่ไฟล์ที่ดาวน์โหลดจากใบเสนอราคานี้ หรือไฟล์เสียหาย', 'error', 5000);
     }
   };
   reader.readAsText(file);
@@ -830,7 +1624,7 @@ document.getElementById('importFileInput').addEventListener('change', e => {
 
 function openSavedPanel(){
   if(!storageAvailable()){
-    alert('เบราว์เซอร์นี้ใช้งานฟีเจอร์นี้ไม่ได้ครับ (ต้องเปิดไฟล์ผ่าน Chrome โดยตรง ไม่ใช่หน้าต่างพรีวิวของ Claude.ai)');
+    showToast('เบราว์เซอร์นี้ใช้งานฟีเจอร์นี้ไม่ได้ครับ (ต้องเปิดไฟล์ผ่าน Chrome โดยตรง ไม่ใช่หน้าต่างพรีวิวของ Claude.ai)', 'error', 5000);
     return;
   }
   renderSavedList();
@@ -867,31 +1661,35 @@ function renderSavedList(){
 function loadQuote(id){
   try{
     const raw = localStorage.getItem(STORAGE_PREFIX + ':' + id);
-    if(!raw){ alert('ไม่พบข้อมูลที่บันทึกไว้'); return; }
+    if(!raw){ showToast('ไม่พบข้อมูลที่บันทึกไว้', 'error'); return; }
     const data = JSON.parse(raw);
     applyFormData(data);
     closeSavedPanel();
+    showToast('โหลดใบเสนอราคาเรียบร้อยแล้ว', 'success');
   } catch(e){
-    alert('โหลดข้อมูลไม่สำเร็จ');
+    showToast('โหลดข้อมูลไม่สำเร็จ', 'error');
   }
 }
 
-function deleteQuote(id){
-  if(!confirm('ลบใบเสนอราคานี้ออกจากรายการที่บันทึกไว้?')) return;
+async function deleteQuote(id){
+  const ok = await customConfirm('ลบใบเสนอราคานี้ออกจากรายการที่บันทึกไว้?', 'ลบรายการนี้');
+  if(!ok) return;
   try{
     localStorage.removeItem(STORAGE_PREFIX + ':' + id);
     let idx = getIndex();
     idx = idx.filter(item => item.id !== id);
     setIndex(idx);
     renderSavedList();
+    showToast('ลบใบเสนอราคาแล้ว', 'success');
   } catch(e){
-    alert('ลบไม่สำเร็จ ลองอีกครั้งครับ');
+    showToast('ลบไม่สำเร็จ ลองอีกครั้งครับ', 'error');
   }
 }
 
 /* ---------- clear current form ---------- */
-function clearData(){
-  if(!confirm('ล้างข้อมูลในแบบฟอร์มปัจจุบันทั้งหมด (ใบที่เคยกดเซฟไว้จะไม่หาย) ดำเนินการต่อหรือไม่?')) return;
+async function clearData(){
+  const ok = await customConfirm('ล้างข้อมูลในแบบฟอร์มปัจจุบันทั้งหมด (ใบที่เคยกดเซฟไว้จะไม่หาย) ดำเนินการต่อหรือไม่?', 'ล้างข้อมูล');
+  if(!ok) return;
 
   document.getElementById('customerName').value = '';
   document.getElementById('customerAddress').value = '';
@@ -900,10 +1698,12 @@ function clearData(){
   document.getElementById('workType').value = 'ต่อเติมหลังคา';
   document.getElementById('areaApprox').value = '';
   document.getElementById('discountInput').value = 0;
-  document.getElementById('vatCheck').checked = true;
+  document.getElementById('showDiscount').checked = true;
+  document.getElementById('showVat').checked = true;
   document.getElementById('vatRate').value = 7;
-  document.getElementById('whtCheck').checked = false;
+  document.getElementById('showWht').checked = false;
   document.getElementById('whtRate').value = 3;
+  updateTotalsVisibility();
   document.getElementById('termsContent').innerHTML =
     '<ul>' +
       '<li>ใบเสนอราคานี้มีอายุ 30 วันนับจากวันที่ออกเอกสาร</li>' +
@@ -927,6 +1727,7 @@ function clearData(){
   document.getElementById('docNo').value = 'QT-' + iso(today).replace(/-/g, '') + '-01';
 
   recalcTotals();
+  showToast('ล้างข้อมูลแบบฟอร์มแล้ว', 'info');
 }
 
 document.getElementById('itemsBody').addEventListener('input', (e) => {
@@ -938,21 +1739,18 @@ document.getElementById('itemsBody').addEventListener('input', (e) => {
 ['discountInput','vatRate','whtRate'].forEach(id => {
   document.getElementById(id).addEventListener('input', recalcTotals);
 });
-['vatCheck','whtCheck'].forEach(id => {
-  document.getElementById(id).addEventListener('change', recalcTotals);
-});
 
 /* ---------- logo upload ---------- */
 function handleLogoUpload(evt){
   const file = evt.target.files && evt.target.files[0];
   if(!file) return;
   if(!file.type.startsWith('image/')){
-    alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+    showToast('กรุณาเลือกไฟล์รูปภาพเท่านั้น', 'error');
     evt.target.value = '';
     return;
   }
   if(file.size > 1024 * 1024){
-    alert('ไฟล์รูปใหญ่เกินไป กรุณาเลือกไฟล์ไม่เกิน 1MB');
+    showToast('ไฟล์รูปใหญ่เกินไป กรุณาเลือกไฟล์ไม่เกิน 1MB', 'error');
     evt.target.value = '';
     return;
   }
@@ -962,14 +1760,17 @@ function handleLogoUpload(evt){
   evt.target.value = '';
 }
 
-function setLogo(dataUrl){
+function setLogo(dataUrl, silent){
   document.getElementById('defaultLogoIcon').style.display = 'none';
   const img = document.getElementById('logoImg');
   img.src = dataUrl;
   img.style.display = 'block';
   document.getElementById('logoRemoveBtn').style.display = 'inline';
-  try{ localStorage.setItem('companyLogo', dataUrl); }
-  catch(e){ alert('บันทึกโลโก้ไว้ถาวรไม่ได้ (พื้นที่จัดเก็บอาจเต็ม) แต่ยังแสดงผลในหน้านี้ได้ปกติ'); }
+  try{
+    localStorage.setItem('companyLogo', dataUrl);
+    if(!silent) showToast('ตั้งโลโก้เรียบร้อยแล้ว', 'success', 2200);
+  }
+  catch(e){ if(!silent) showToast('บันทึกโลโก้ไว้ถาวรไม่ได้ (พื้นที่จัดเก็บอาจเต็ม) แต่ยังแสดงผลในหน้านี้ได้ปกติ', 'error', 5000); }
 }
 
 function removeLogo(evt){
@@ -985,7 +1786,7 @@ function removeLogo(evt){
 function restoreLogo(){
   try{
     const saved = localStorage.getItem('companyLogo');
-    if(saved) setLogo(saved);
+    if(saved) setLogo(saved, true);
   } catch(e){}
 }
 
@@ -994,22 +1795,23 @@ function handleIssuerSigUpload(evt){
   const file = evt.target.files && evt.target.files[0];
   if(!file) return;
   if(!file.type.startsWith('image/')){
-    alert('กรุณาเลือกไฟล์รูปภาพเท่านั้น (แนะนำ PNG พื้นโปร่งใส)');
+    showToast('กรุณาเลือกไฟล์รูปภาพเท่านั้น (แนะนำ PNG พื้นโปร่งใส)', 'error');
     evt.target.value = '';
     return;
   }
   const reader = new FileReader();
-  reader.onload = (e) => setIssuerSig(e.target.result);
+  reader.onload = (e) => setIssuerSig(e.target.result, false, true);
   reader.readAsDataURL(file);
   evt.target.value = '';
 }
 
-function setIssuerSig(dataUrl){
+function setIssuerSig(dataUrl, silent, toastOnSuccess){
   document.getElementById('issuerSigDropzone').style.display = 'none';
   const img = document.getElementById('issuerSigImg');
   img.src = dataUrl;
   document.getElementById('issuerSigPreview').style.display = 'flex';
   try{ localStorage.setItem('issuerSignature', dataUrl); } catch(e){}
+  if(toastOnSuccess) showToast('แนบลายเซ็นเรียบร้อยแล้ว', 'success', 2200);
 }
 
 function removeIssuerSig(evt){
@@ -1023,7 +1825,7 @@ function removeIssuerSig(evt){
 function restoreIssuerSig(){
   try{
     const saved = localStorage.getItem('issuerSignature');
-    if(saved) setIssuerSig(saved);
+    if(saved) setIssuerSig(saved, true);
   } catch(e){}
 }
 
@@ -1107,6 +1909,60 @@ function renderAttachPages(){
   }
 }
 
+/* ---------- drag & drop for image upload zones ---------- */
+function setupDropZone(zoneEl, onFile, fileFilterIsImage){
+  if(!zoneEl) return;
+  ['dragenter','dragover'].forEach(evt => zoneEl.addEventListener(evt, e => {
+    e.preventDefault(); e.stopPropagation();
+    zoneEl.classList.add('drag-over');
+  }));
+  ['dragleave','drop'].forEach(evt => zoneEl.addEventListener(evt, e => {
+    e.preventDefault(); e.stopPropagation();
+    zoneEl.classList.remove('drag-over');
+  }));
+  zoneEl.addEventListener('drop', e => {
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if(!files || !files.length) return;
+    const file = fileFilterIsImage ? [...files].find(f => f.type.startsWith('image/')) : files[0];
+    if(!file){ showToast('กรุณาลากไฟล์รูปภาพมาวางครับ', 'error'); return; }
+    onFile(file);
+  });
+}
+
+function setupAllDropZones(){
+  setupDropZone(document.getElementById('logoUpload'), file => {
+    handleLogoUpload({ target: { files: [file], value: '' } });
+  }, true);
+  setupDropZone(document.getElementById('issuerSigDropzone'), file => {
+    handleIssuerSigUpload({ target: { files: [file], value: '' } });
+  }, true);
+  setupDropZone(document.getElementById('attachControls'), file => {
+    handleAttachPhotoFiles([file]);
+  }, true);
+}
+
+/* ---------- keyboard shortcuts ---------- */
+function setupKeyboardShortcuts(){
+  document.getElementById('itemsBody').addEventListener('keydown', e => {
+    if(e.key !== 'Enter') return;
+    if(!e.target.classList.contains('cell-input')) return;
+    const rows = document.querySelectorAll('#itemsBody tr');
+    const lastRow = rows[rows.length - 1];
+    if(e.target.closest('tr') === lastRow){
+      e.preventDefault();
+      addRow();
+    }
+  });
+
+  document.addEventListener('keydown', e => {
+    const isSave = (e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S');
+    if(isSave){
+      e.preventDefault();
+      saveQuote();
+    }
+  });
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   createRow('รื้อถอนหลังคาเดิม และขนทิ้งนอกสถานที่', 1, 'งาน', 8000);
   createRow('โครงหลังคาเหล็กกล่อง ชุบกันสนิม', 45, 'ตร.ม.', 450);
@@ -1114,9 +1970,14 @@ window.addEventListener('DOMContentLoaded', () => {
   createRow('แผ่นสะท้อนความร้อนใต้หลังคา (กันร้อน)', 45, 'ตร.ม.', 120);
   createRow('ค่าแรงติดตั้ง + ขนส่งวัสดุ', 1, 'งาน', 15000);
   renumber();
+  updateTotalsVisibility();
   restoreLogo();
   restoreIssuerSig();
   renderAttachPages();
+  loadCatalog();
+  setupCatalogResize();
+  setupAllDropZones();
+  setupKeyboardShortcuts();
 
   const today = new Date();
   const due = new Date(); due.setDate(today.getDate() + 30);
